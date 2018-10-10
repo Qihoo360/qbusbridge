@@ -1,5 +1,5 @@
 
-## Introduction
+## Introduction [中文](https://github.com/Qihoo360/kafkabridge/blob/master/README_ZH.md)
 * Kafkabridge is based on the [librdkafka](https://github.com/edenhill/librdkafka) under the hook. A mass of details related to how to use has been hidden, that making QBus more simple and easy-to-use than [librdkafka](https://github.com/edenhill/librdkafka). For producing and consuming messages, the only thing need the users to do is to invoke a few APIs, for these  they don't need to understand too much about Kafka.
 * The reliability of messages producing, that is may be the biggest concerns of the users, has been considerably improved.
 
