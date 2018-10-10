@@ -1,12 +1,12 @@
 #!/bin/bash
 
 PHP_VER="php"
-PHP_SRC="/usr/local/php"
+PHP_SRC="/usr/local/php/include/php"
 
 print_usage()
 {
     echo "Usage:
-    -s </usr/local/php>            header file src
+    -s </usr/local/php/include/php>            header file src
     -v <php>			   php version php/php7
     -h                             help"
  
