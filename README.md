@@ -132,4 +132,5 @@ int main(int argc, char* argv[]) {
 
 ~~~
 
-## [CONFIGURATION](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION)
+## CONFIGURATION
+[kafka configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION)
