@@ -408,7 +408,7 @@ bool QbusProducer::init(const std::string& broker_list,
   if (i == kRmb->end()) {
     qbus_producer_imp_ = new QbusProducerImp();
     if (NULL != qbus_producer_imp_) {
-      rt = qbus_producer_imp_->init(broker_list, log_path, topic_name, config_path);
+      rt = qbus_producer_imp_->Init(broker_list, log_path, topic_name, config_path);
       if (rt) {
         kRmb->insert(BUFFER::value_type(key, qbus_producer_imp_));
         INFO(__FUNCTION__ << " | Procuder init is OK!");
@@ -467,7 +467,7 @@ static __attribute__((destructor)) void end() {
 #ifdef NOT_USE_CONSUMER_CALLBACK
   if (kRmb != NULL) {
     for (BUFFER::iterator i = kRmb->begin(); i != kRmb->end(); ++i) {
-      i->second->uninit();
+      i->second->Uninit();
       delete i->second;
     }
 
