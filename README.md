@@ -25,8 +25,6 @@ Navigate to the Go installation directory，and run `build.sh`, you will get the
 #### *python*
 Navigate to the Python installation directory, run `build.sh`, that will generate two files, qbus.py and _qbus.so in the current directory.
 
-/usr/local/python2.7/include/python2.7
-
 The complie script support some options, you can check them by append the `-h` option. Use the `-s` option passing the file path of Python's header files, '/usr/local/python2.7/include/python2.7' is the default value of `-s`.
 
 
