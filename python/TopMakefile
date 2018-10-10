@@ -1,0 +1,273 @@
+# ------------------------------------------------------------
+# SWIG Examples Makefile
+#
+# This file is used by the examples to build modules.  Assuming
+# you ran configure, this file will probably work.  However,
+# it's not perfect so you might need to do some hand tweaking.
+#
+# Other notes:
+#
+# 1.   Take a look at the prefixes below.   Since SWIG works with
+#      multiple target languages, you may need to find out where
+#      certain packages have been installed.   Set the prefixes
+#      accordingly.
+#
+# 2.   To use this makefile, set required variables, eg SRCS, INTERFACE,
+#      INTERFACEDIR, INCLUDES, LIBS, TARGET, and do a
+#           $(MAKE) -f Makefile.template.in SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+#           INCLUDES='$(INCLUDES) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
+#           INTERFACEDIR='$(INTERFACEDIR)' TARGET='$(TARGET)' method
+#
+#      'method' describes what is being built.
+#---------------------------------------------------------------
+
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: ./Makefile.in ../config.status
+	cd .. && $(SHELL) ./config.status Examples/Makefile
+
+# SRCDIR is the relative path to the current source directory
+# - For in-source-tree builds, SRCDIR with be either '' or './', but
+#   '../' for the test suites that build in a subdir (e.g. C#, Java)
+# - For out-of-source-tree builds, SRCDIR will be a relative
+#   path ending with a '/'
+
+# SRCDIR_SRCS, etc. are $(SRCS), etc. with $(SRCDIR) prepended
+SRCDIR_SRCS    = $(addprefix $(SRCDIR),$(SRCS))
+SRCDIR_CSRCS   = $(addprefix $(SRCDIR),$(CSRCS))
+SRCDIR_CXXSRCS = $(addprefix $(SRCDIR),$(CXXSRCS))
+
+ifeq (,$(SRCDIR))
+SRCDIR_INCLUDE = -I.
+else
+SRCDIR_INCLUDE = -I. -I$(SRCDIR)
+endif
+
+TARGET     =
+CC         = gcc
+CXX        = g++
+CPPFLAGS   = $(SRCDIR_INCLUDE)
+CFLAGS     = 
+CXXFLAGS   = $(CENT_VER) -fPIC -I/usr/include -I../cxx 
+LDFLAGS    = 
+LDFLAGS    =
+prefix     = /usr/local
+exec_prefix= ${prefix}
+SRCS       =
+INCLUDES   =
+LIBS       = -Wl,-Bstatic -L../cxx/thirdparts/librdkafka/src -lrdkafka  -Wl,-Bdynamic -lpthread  -lm -L/usr/local/curl/lib -lcurl -llog4cplus -g
+INTERFACE  =
+INTERFACEDIR  =
+INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
+SWIGOPT    =
+
+# SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
+SWIG_LIB_DIR = ./Lib
+SWIGEXE    = swig
+SWIG_LIB_SET = env SWIG_LIB=$(SWIG_LIB_DIR)
+SWIGTOOL   =
+SWIG       = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
+
+LIBM       = -lieee -lm
+LIBC       = 
+LIBCRYPT   = -lcrypt
+SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
+LIBPREFIX  =
+
+# RUNTOOL is for use with runtime tools, eg set it to valgrind
+RUNTOOL    =
+# COMPILETOOL is a way to run the compiler under another tool, or more commonly just to stop the compiler executing
+COMPILETOOL=
+# RUNPIPE is for piping output of running interpreter/compiled code somewhere, eg RUNPIPE=\>/dev/null
+RUNPIPE=
+
+RUNME = runme
+
+IWRAP      = $(INTERFACE:.i=_wrap.i)
+ISRCS      = $(IWRAP:.i=.c)
+ICXXSRCS   = $(IWRAP:.i=.cxx)
+IOBJS      = $(IWRAP:.i=.o)
+
+##################################################################
+# Some options for silent output
+##################################################################
+
+ifneq (,$(findstring s, $(filter-out --%, $(MAKEFLAGS))))
+  # make -s detected
+  SILENT=1
+else
+  SILENT=
+endif
+
+ifneq (,$(SILENT))
+  SILENT_OPTION = -s
+  SILENT_PIPE = >/dev/null
+  ANT_QUIET = -q -logfile /dev/null
+else
+  SILENT_OPTION =
+  SILENT_PIPE =
+  ANT_QUIET =
+endif
+
+##################################################################
+# Dynamic loading for C++
+# If you are going to be building dynamic loadable modules in C++,
+# you may need to edit this line appropriately.
+#
+# This line works for g++, but I'm not sure what it might be
+# for other C++ compilers
+##################################################################
+
+CPP_DLLIBS = #-L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
+	     -L/usr/local/lib -lg++ -lstdc++ -lgcc
+
+# Solaris workshop 5.0
+# CPP_DLLIBS = -L/opt/SUNWspro/lib -lCrun
+
+# Symbols used for using shared libraries
+SO=		.so
+LDSHARED=	gcc -shared
+CCSHARED=	-fpic
+CXXSHARED=      gcc -shared
+
+# This is used for building shared libraries with a number of C++
+# compilers.   If it doesn't work,  comment it out.
+CXXSHARED= g++ -shared 
+
+OBJS      = $(SRCS:.c=.o) $(CXXSRCS:.cxx=.o)
+
+distclean:
+	rm -f Makefile
+	rm -f d/example.mk
+	rm -f xml/Makefile
+
+##################################################################
+# Very generic invocation of swig
+##################################################################
+
+swiginvoke:
+	$(SWIG) $(SWIGOPT)
+##################################################################
+#####                       PYTHON                          ######
+##################################################################
+
+PYTHON_FLAGS =
+
+# Make sure these locate your Python installation
+ifeq (,$(PY3))
+  #PYTHON_INCLUDE= $(DEFS) -I/usr/local/python2.7/include/python2.7 -I/usr/include/python2.7
+  #PYTHON_INCLUDE= $(DEFS) -I/usr/include/python2.7 #-I/usr/lib/python2.6/config
+  PYTHON_LIB    = 
+  PYTHON        = python $(PYTHON_FLAGS)
+else
+  #PYTHON_INCLUDE= $(DEFS) 
+  PYTHON_LIB    = 
+  PYTHON        = python $(PYTHON_FLAGS)
+endif
+
+# Extra Python specific linking options
+ifeq (,$(PY3))
+  PYTHON_DLNK   = 
+  #PYTHON_LINK   = -lpython2.7
+else
+#  PYTHON_DLNK   =  -lpython2.7
+  PYTHON_LINK   = 
+endif
+PYTHON_SO     = .so
+
+# SWIG option for Python
+ifeq (,$(PY3))
+  SWIGPYTHON = $(SWIG) -python
+else
+  SWIGPYTHON = $(SWIG) -python -py3
+endif
+
+PEP8         = 
+PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+python: $(SRCDIR_SRCS)
+	$(SWIGPYTHON) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+python_cpp: $(SRCDIR_SRCS)
+	$(SWIGPYTHON) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Python interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11
+TKINTER =
+PYTHON_LIBOPTS = $(PYTHON_LINK) -ldl  -lpcre $(TKINTER) $(SYSLIBS)
+
+python_static: $(SRCDIR_SRCS)
+	$(SWIGPYTHON) -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Xlinker -export-dynamic $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
+	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+python_static_cpp: $(SRCDIR_SRCS)
+	$(SWIGPYTHON) -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
+	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Running a Python example
+# -----------------------------------------------------------------
+
+ifeq (,$(PY3))
+  PYSCRIPT = $(RUNME).py
+else
+  PYSCRIPT = $(RUNME)3.py
+endif
+
+PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
+
+python_run:
+#python_run: $(PYSCRIPT)
+#ifneq (,$(PEP8))
+#	$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT)
+#endif
+#	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
+
+ifneq (,$(SRCDIR))
+$(RUNME).py: $(SRCDIR)$(RUNME).py
+	cp $< $@
+endif
+
+$(RUNME)3.py: $(SRCDIR)$(RUNME).py
+	cp $< $@
+	$(PY2TO3) -w $@ >/dev/null 2>&1
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+python_version:
+	$(PYTHON) -V
+
+# -----------------------------------------------------------------
+# Cleaning the python examples
+# -----------------------------------------------------------------
+
+python_clean:
+	rm -rf __pycache__
+	rm -f *_wrap* *~ .~* mypython *.pyc
+	rm -f core 
+	rm -f *.o *.so *$(PYTHON_SO)
+	rm -f $(TARGET).py
+	if test -f $(SRCDIR)$(RUNME).py; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
+	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
+

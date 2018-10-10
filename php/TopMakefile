@@ -1,0 +1,198 @@
+# ------------------------------------------------------------
+# SWIG Examples Makefile
+#
+# This file is used by the examples to build modules.  Assuming
+# you ran configure, this file will probably work.  However,
+# it's not perfect so you might need to do some hand tweaking.
+#
+# Other notes:
+#
+# 1.   Take a look at the prefixes below.   Since SWIG works with
+#      multiple target languages, you may need to find out where
+#      certain packages have been installed.   Set the prefixes
+#      accordingly.
+#
+# 2.   To use this makefile, set required variables, eg SRCS, INTERFACE,
+#      INTERFACEDIR, INCLUDES, LIBS, TARGET, and do a
+#           $(MAKE) -f Makefile.template.in SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+#           INCLUDES='$(INCLUDES) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
+#           INTERFACEDIR='$(INTERFACEDIR)' TARGET='$(TARGET)' method
+#
+#      'method' describes what is being built.
+#---------------------------------------------------------------
+
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: ./Makefile.in ../config.status
+	cd .. && $(SHELL) ./config.status Examples/Makefile
+
+# SRCDIR is the relative path to the current source directory
+# - For in-source-tree builds, SRCDIR with be either '' or './', but
+#   '../' for the test suites that build in a subdir (e.g. C#, Java)
+# - For out-of-source-tree builds, SRCDIR will be a relative
+#   path ending with a '/'
+
+# SRCDIR_SRCS, etc. are $(SRCS), etc. with $(SRCDIR) prepended
+SRCDIR_SRCS    = $(addprefix $(SRCDIR),$(SRCS))
+SRCDIR_CSRCS   = $(addprefix $(SRCDIR),$(CSRCS))
+SRCDIR_CXXSRCS = $(addprefix $(SRCDIR),$(CXXSRCS))
+
+ifeq (,$(SRCDIR))
+SRCDIR_INCLUDE = -I.
+else
+SRCDIR_INCLUDE = -I. -I$(SRCDIR)
+endif
+
+TARGET     =
+CC         = gcc
+CXX        = g++
+CPPFLAGS   = $(SRCDIR_INCLUDE) -D NOT_USE_CONSUMER_CALLBACK
+CFLAGS     = 
+CXXFLAGS   = $(CENT_VER) -shared -fPIC -I../cxx -I/usr/local/boost_1_58_0/ -I$(PHP_SRC)/include/php -I$(PHP_SRC)/include/php/Zend -I$(PHP_SRC)/include/php/TSRM -I$(PHP_SRC)/include/php/main  -D NOT_USE_CONSUMER_CALLBACK -g
+LDFLAGS    =
+prefix     = /usr/local
+exec_prefix= ${prefix}
+SRCS       =
+INCLUDES   =
+LIBS       = -Wl,-Bstatic -L../cxx/thirdparts/librdkafka/src -lrdkafka   -Wl,-Bdynamic -lm -llog4cplus -lstdc++
+INTERFACE  =
+INTERFACEDIR  =
+INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
+SWIGOPT    =
+
+# SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
+SWIG_LIB_DIR = ./Lib
+SWIGEXE    = swig
+SWIG_LIB_SET = env SWIG_LIB=$(SWIG_LIB_DIR)
+SWIGTOOL   =
+SWIG       = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
+
+LIBM       = -lieee -lm
+LIBC       = 
+LIBCRYPT   = -lcrypt
+SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
+LIBPREFIX  =
+
+# RUNTOOL is for use with runtime tools, eg set it to valgrind
+RUNTOOL    =
+# COMPILETOOL is a way to run the compiler under another tool, or more commonly just to stop the compiler executing
+COMPILETOOL=
+# RUNPIPE is for piping output of running interpreter/compiled code somewhere, eg RUNPIPE=\>/dev/null
+RUNPIPE=
+
+RUNME = runme
+
+IWRAP      = $(INTERFACE:.i=_wrap.i)
+ISRCS      = $(IWRAP:.i=.c)
+ICXXSRCS   = $(IWRAP:.i=.cxx)
+IOBJS      = $(IWRAP:.i=.o)
+
+##################################################################
+# Some options for silent output
+##################################################################
+
+ifneq (,$(findstring s, $(filter-out --%, $(MAKEFLAGS))))
+  # make -s detected
+  SILENT=1
+else
+  SILENT=
+endif
+
+ifneq (,$(SILENT))
+  SILENT_OPTION = -s
+  SILENT_PIPE = >/dev/null
+  ANT_QUIET = -q -logfile /dev/null
+else
+  SILENT_OPTION =
+  SILENT_PIPE =
+  ANT_QUIET =
+endif
+
+##################################################################
+# Dynamic loading for C++
+# If you are going to be building dynamic loadable modules in C++,
+# you may need to edit this line appropriately.
+#
+# This line works for g++, but I'm not sure what it might be
+# for other C++ compilers
+##################################################################
+
+CPP_DLLIBS = #-L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
+	     -L/usr/local/lib -lg++ -lstdc++ -lgcc
+
+# Solaris workshop 5.0
+# CPP_DLLIBS = -L/opt/SUNWspro/lib -lCrun
+
+# Symbols used for using shared libraries
+SO=		.so
+LDSHARED=	gcc -shared
+CCSHARED=	-fpic
+CXXSHARED=      gcc -shared
+
+# This is used for building shared libraries with a number of C++
+# compilers.   If it doesn't work,  comment it out.
+CXXSHARED= g++ -shared 
+
+OBJS      = $(SRCS:.c=.o) $(CXXSRCS:.cxx=.o)
+
+distclean:
+	rm -f Makefile
+	rm -f d/example.mk
+	rm -f xml/Makefile
+
+##################################################################
+# Very generic invocation of swig
+##################################################################
+
+swiginvoke:
+	$(SWIG) $(SWIGOPT)
+
+
+##################################################################
+#####                       PHP                             ######
+##################################################################
+
+PHP         = php
+PHP_INCLUDE = 
+PHP_SO      = .so
+PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
+
+# -------------------------------------------------------------------
+# Build a PHP dynamically loadable module (C)
+# -------------------------------------------------------------------
+
+php: $(SRCDIR_SRCS)
+	$(SWIG) -$(PHP_VER) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
+
+# --------------------------------------------------------------------
+# Build a PHP dynamically loadable module (C++)
+# --------------------------------------------------------------------
+
+php_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -$(PHP_VER) -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
+
+# -----------------------------------------------------------------
+# Running a PHP example
+# -----------------------------------------------------------------
+
+php_run:
+	#$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHP_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+php_version:
+	$(PHP) -v | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the PHP examples
+# -----------------------------------------------------------------
+
+php_clean:
+	rm -f *_wrap* *~ .~* qbus.php php_qbus.h
+	rm -f core 
+	rm -f *.o *$(PHP_SO)

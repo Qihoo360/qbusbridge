@@ -1,0 +1,18 @@
+依赖boost, liblog4cplus, swig-3.0.12, cmake
+
+cxx 
+编译方法: 执行build.sh，在../lib/debug下会产生libqbus.so。
+
+go
+编译方法：执行build.sh，在gopath/src/qbus 目录下生成qbus.go和libQBus_go.so。
+
+c
+编译方法: 执行build.sh，在../lib/debug下会产生libQBus_c.so。
+
+python
+编译方法：执行build.sh，在当前目录生成qbus.py和_qbus.so。
+编译脚本提供了选项，可以通过-h查看。可以通过-s选项传递python相关头文件路径。默认-s /usr/local/python2.7/include/python2.7
+
+php
+编译方法：执行build.sh，当前目录生成扩展qbus.so和qbus.php。
+编译脚本提供了选项，可以通过-h查看。可以通过s选项传递php相关头文件路径，可以通过-v传递php的版本。默认选项-s /usr/local/php -v php。

@@ -1,0 +1,3 @@
+usage:
+1. Add the path of qbus.so to php.ini
+2. In program: require(the path of qbus.php)
