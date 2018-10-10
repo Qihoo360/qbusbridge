@@ -1,4 +1,4 @@
-## 简介
+## 简介 [English](https://github.com/Qihoo360/kafkabridge/blob/master/README.md)
 * kafkabridge 底层基于 [librdkafka](https://github.com/edenhill/librdkafka), 与之相比封装了大量的使用细节，简单易用，使用者无需了解过多的Kafka系统细节，只需调用极少量的接口，就可完成消息的生产和消费;
 * 针对使用者比较关心的消息生产的可靠性，作了近一步的提升
 
