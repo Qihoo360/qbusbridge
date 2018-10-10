@@ -10,7 +10,6 @@ send.sync                   #生产时的同步发送 默认未开启
 log.level                   #sdk的日志等级  默认info
 enable.rdkafka.log          #底层rdkafka的日志 在此选项打开时 需要在global配置块下加入debug=all配置项（具体使用方式见rdkafka配置文档）  默认不打开 在生成时在当下文件夹./rdkafka.log
 broker.list                 #broker地址 可在配置文件中配置
-manual.commit.offset.async  #手动提交offset 默认未开启		
 minimize.produce.latency    #在rdkafka层不缓存消息 直接生产 达到消息的最小延迟 默认未开启
 consumer.poll.time.ms       #访问下层rdkafka拉取回消息的队列的阻塞时间 默认100ms
 manual.commit.time.ms       #向下层rdkafka提交offset的周期 默认200ms
