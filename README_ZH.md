@@ -1,55 +1,47 @@
+## 简介
+* kafkabridge 底层基于 [librdkafka](https://github.com/edenhill/librdkafka), 与之相比封装了大量的使用细节，简单易用，使用者无需了解过多的Kafka系统细节，只需调用极少量的接口，就可完成消息的生产和消费;
+* 针对使用者比较关心的消息生产的可靠性，作了近一步的提升
 
-## Introduction
-* QBus SDK is based on the [librdkafka](https://github.com/edenhill/librdkafka) under the hook. A mass of details related to how to use has been hidden, that making QBus more simple and easy-to-use than [librdkafka](https://github.com/edenhill/librdkafka). For producing and consuming messages, the only thing need the users to do is to invoke a few APIs, for these  they don't need to understand too much about Kafka.
-* The reliability of messages producing, that is may be the biggest concerns of the users, has been considerably improved.
+## 特点
+* 支持多种语言：c++/c、php、python、golang, 且各语言接口完全统一;
+* 接口少，简单易用;
+* 针对高级用户，支持通过配置文件调整所有的librdkafka的配置;
+* 在非按key写入数据的情况下，尽最大努力将消息成功写入;
+* 支持同步和异步两种数据写入方式;
+* 在消费时，除默认自动提交offset外，允许用户通过配置手动提交offset;
+* 在php-fpm场景中，复用长连接生产消息，避免频繁创建断开连接的开销;
 
-## Features
-* Multiple programming languages are supported, includes C/C++, PHP, Python, Golong, etc, with very consistent APIs.
-* Few interfaces, so it is easy to use.
-* For advanced users, adapting [librdkafka](https://github.com/edenhill/librdkafka)'s configration by profiles is also supported.
-* In the case of writing data not by keys, the SDK will do the best to guarantee the messages being written successfully .
-* Two writing modes, synchronous and asynchronous, are supported.
-* As for messages consuming, the offset could be submited automatically, or by manual  configurating.
-* For the case of using php-fpm, the connection is keeping-alived for reproduce messages uninterruptedly, saving the cost caused by recreating connections.
+## 编译
 
-## Compiling
-
-***Dependencies: liblog4cplus, boost, swig-3.0.12, cmake***
+***依赖liblog4cplus, boost, swig-3.0.12, cmake***
 
 ##### *cxx/c*
-Navigate to the cxx/c installation directory，and run `build.sh -release`, you will get a new file named libqbus.so in the "./lib/release" directory.
+ 进入cxx/c目录，执行build.sh -release，在./lib/release下会产生libqbus.so。
 
 #### *go*
-Navigate to the Go installation directory，and run `build.sh`, you will get the new files qbus.go and libQBus_go.so in the directory "gopath/src/qbus".
+进入go目录，执行build.sh，在gopath/src/qbus 目录下生成qbus.go和libQBus_go.so。
 
 #### *python*
-Navigate to the Python installation directory, run `build.sh`, that will generate two files, qbus.py and _qbus.so in the current directory.
-
-/usr/local/python2.7/include/python2.7
-
-The complie script support some options, you can check them by append the `-h` option. Use the `-s` option passing the file path of Python's header files, '/usr/local/python2.7/include/python2.7' is the default value of `-s`.
-
+进入python目录，执行build.sh，在当前目录生成qbus.py和_qbus.so。
+编译脚本提供了选项，可以通过-h查看。可以通过-s选项传递python相关头文件路径。默认-s /usr/local/python2.7/include/python2.7
 
 #### *php*
-Naviate to the PHP installation directory, run `build.sh`, that will generate the new files qbus.so and qbus.php in the current directory.
+进入python目录, 执行build.sh，当前目录生成扩展qbus.so和qbus.php。
+编译脚本提供了选项，可以通过-h查看。可以通过s选项传递php相关头文件路径，可以通过-v传递php的版本。默认选项-s /usr/local/php -v php。
 
-The complie script support some options, you can check them by append the `-h` option. Use the `-s` option passing the file path of PHP's head files, the default value of `-s` is '/usr/local/php -v php'.
 
-
-## Usage
-
-#### Data Producing
-* In the case of writing data not by keys, the SDK will do it's best to submit every single message. As long as there is one broker in the Kafka cluster behaving normally, it will try to resend.
-* Writing data only need to invoke the `produce` interface, and in the asynchronous mode, by checking the return value, you could know whether the sending queue is full or not.
-* In the synchronous writing mode, `produce` interface will return value directively that indicate whether the current message has been written succuessfully. But that is at the expense of some extra performance loss and CPU usage. So asynchronous mode is recommended.
-* The following is a C++ example demonstrating how to invoke the `produce` interface:
+## 使用
+#### 数据生产
+* 在非按key写入的情况下，sdk尽最大努力提交每一条消息，只要Kafka集群存有一台broker正常，就会重试发送;
+* 每次写入数据只需要调用*produce*接口，在异步发送的场景下，通过返回值可以判断发送队列是否填满，发送队列可通过配置文件调整;
+* 在同步发送的场景中，*produce*接口返回当前消息是否写入成功，但是写入性能会有所下降，CPU使用率会有所上升,推荐还是使用异步写入方式;。
+* 下面是生产接口，以c++为例：
 ~~~
 bool QbusProducer::init(const string& broker_list, const string& log_path, const string& config_path, const string& topic)
 bool QbusProducer::produce(const char* data, size_t data_len, const std::string& key)
 void QbusProducer::uninit()
 ~~~
-
-* C++ SDK use example:
+* c++ sdk的使用范例：
 
 ~~~
 #include <string>
@@ -78,10 +70,11 @@ int main(int argc, const char* argv[]) {
 
 ~~~
 
-#### Data Consuming
-* Consuming data only need to invoke the `subscribeOne` to subscribe the 'topic' (also support subscribing multiple topics). The current process is not blocked, every message will send back to the user through the callback.
-* The SDK also supports submit offset manually, users can submit the offset in the code of the message body that returned by through callbacks.
-* The following is an example of C++, that demonstrate the usage of the consuming interface:
+
+#### 数据消费
+* 消费只需调用subscribeOne订阅topic（也支持同时订阅多个topic），然后执行start就开始消费，当前进程非阻塞，每条消息通过callback接口回调给使用者;
+* sdk还支持用户手动提交offset方式，用户可以通过callback中返回的消息体，在代码其他逻辑中进行提交。
+* 下面是消费接口，以c++为例：
 ~~~
 bool QbusConsumer::init(string broker_list, string log_path, string config_path, QbusConsumerCallback& callback)
 bool QbusConsumer::subscribeOne(string group, string topic)
@@ -89,7 +82,7 @@ bool QbusConsumer::start()
 void QbusConsumer::stop()
 ~~~
 
-* C++ SDK use example: 
+* c++ sdk的使用范例：
 
 ~~~
 #include <iostream>
@@ -118,7 +111,7 @@ int main(int argc, char* argv[]) {
                 return NULL;
             }
 
-            while (1) sleep(1);  //other operations can appear here
+            while (1) sleep(1);  //可以执行其他业务逻辑
 
             qbus_consumer.stop();
         } else {
