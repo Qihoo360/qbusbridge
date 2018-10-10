@@ -124,3 +124,6 @@ int main(int argc, char* argv[]) {
 }
 
 ~~~
+
+
+## [配置](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION)
