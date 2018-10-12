@@ -10,7 +10,7 @@ send.sync                   #Simultaneous transmission at the time of production
 log.level                   #sdk log level, false by default
 enable.rdkafka.log          #rdkafka log When this option is turned on, you need to add the debug=all configuration item under the global configuration block. (View the rdkafka configuration file for detail), false by default. file path:./rdkafka.log
 broker.list                 #broker address
-minimize.produce.latency    #not cache messages in the rdkafka layer, Direct production to achieve the minimum delay of the message. false by default
+minimize.produce.latency    #not cache messages in the rdkafka layer, Direct production to achieve the minimum delay of the message, false by default
 consumer.poll.time.ms       #consumer poll time, 100ms by default
 manual.commit.time.ms       #commit time to rdkafka, 200ms by default
 user.manual.commit.offset   #manual commit offset, false by default
