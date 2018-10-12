@@ -129,5 +129,5 @@ int main(int argc, char* argv[]) {
 ## 配置
 [kafkabridge具体配置](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION_ZH)
 
-## QQ 群
+## QQ 群 : 876834263
 ![](https://github.com/Qihoo360/kafkabridge/blob/master/kafkabridge.png)
