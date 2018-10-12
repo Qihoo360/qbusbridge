@@ -130,4 +130,4 @@ int main(int argc, char* argv[]) {
 [kafkabridge具体配置](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION_ZH)
 
 ## QQ 群
-https://github.com/Qihoo360/kafkabridge/blob/master/kafkabridge.png
+![](https://github.com/Qihoo360/kafkabridge/blob/master/kafkabridge.png)
