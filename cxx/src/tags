@@ -23,16 +23,23 @@ GetSdkConfig	qbus_config.cc	/^std::string QbusConfigLoader::GetSdkConfig(const s
 GetWaitOffsetKey	qbus_consumer_imp.cc	/^std::string QbusConsumerImp::GetWaitOffsetKey(rd_kafka_message_t *msg) {$/;"	f	class:qbus::QbusConsumerImp
 INI_CONFIG_KEY_VALUE_SPLIT	qbus_config.cc	/^static const char INI_CONFIG_KEY_VALUE_SPLIT = '|';$/;"	m	namespace:qbus	file:
 Init	qbus_consumer_imp.cc	/^bool QbusConsumerImp::Init(const std::string& log_path,$/;"	f	class:qbus::QbusConsumerImp
+Init	qbus_producer.cc	/^bool QbusProducerImp::Init(const std::string& broker_list,$/;"	f	class:qbus::QbusProducerImp
 InitLog	qbus_helper.cc	/^void QbusHelper::InitLog(LUtil::Logger::LOG_LEVEL log_level,$/;"	f	class:qbus::QbusHelper
 InitLog	qbus_helper.cc	/^void QbusHelper::InitLog(const std::string& log_level,$/;"	f	class:qbus::QbusHelper
 InitRdKafka	qbus_consumer_imp.cc	/^bool QbusConsumerImp::InitRdKafka() {$/;"	f	class:qbus::QbusConsumerImp
 InitRdKafkaConfig	qbus_consumer_imp.cc	/^bool QbusConsumerImp::InitRdKafkaConfig() {$/;"	f	class:qbus::QbusConsumerImp
+InitRdKafkaConfig	qbus_producer.cc	/^bool QbusProducerImp::InitRdKafkaConfig() {$/;"	f	class:qbus::QbusProducerImp
 InitRdKafkaHandle	qbus_consumer_imp.cc	/^bool QbusConsumerImp::InitRdKafkaHandle() {$/;"	f	class:qbus::QbusConsumerImp
+InitRdKafkaHandle	qbus_producer.cc	/^bool QbusProducerImp::InitRdKafkaHandle(const std::string& topic_name) {$/;"	f	class:qbus::QbusProducerImp
+InternalProduce	qbus_producer.cc	/^bool QbusProducerImp::InternalProduce(const char* data,$/;"	f	class:qbus::QbusProducerImp
 IsSetConfig	qbus_config.cc	/^bool QbusConfigLoader::IsSetConfig(const std::string& config_name, bool is_topic_config) const {$/;"	f	class:qbus::QbusConfigLoader
 LoadConfig	qbus_config.cc	/^void QbusConfigLoader::LoadConfig(const std::string& path) {$/;"	f	class:qbus::QbusConfigLoader
 LoadRdkafkaConfig	qbus_config.cc	/^void QbusConfigLoader::LoadRdkafkaConfig(rd_kafka_conf_t* rd_kafka_conf,$/;"	f	class:qbus::QbusConfigLoader
 ManualCommitOffset	qbus_consumer_imp.cc	/^void  QbusConsumerImp::ManualCommitOffset(const rd_kafka_message_t* rkmessage) {$/;"	f	class:qbus::QbusConsumerImp
 ManualCommitWaitOffset	qbus_consumer_imp.cc	/^void  QbusConsumerImp::ManualCommitWaitOffset(bool face) {$/;"	f	class:qbus::QbusConsumerImp
+MsgDeliveredCallback	qbus_producer.cc	/^void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t *rk,$/;"	f	class:qbus::QbusProducerImp
+PartitionHashFunc	qbus_producer.cc	/^int32_t QbusProducerImp::PartitionHashFunc(const rd_kafka_topic_t *rkt,$/;"	f	class:qbus::QbusProducerImp
+Produce	qbus_producer.cc	/^bool QbusProducerImp::Produce(const char* data,$/;"	f	class:qbus::QbusProducerImp
 QBUS_CONFIG_H	qbus_config.h	2;"	d
 QBUS_CONSTANT_H	qbus_constant.h	2;"	d
 QBUS_CONSUMER_CALLBACK_H_	qbus_consumer_callback.h	2;"	d
@@ -119,9 +126,8 @@ RD_KAFKA_TOPIC_CONFIG_AUTO_OFFSET_RESET_EARLIEST	qbus_constant.h	54;"	d
 RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD	qbus_constant.h	13;"	d
 RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD_BROKER	qbus_constant.h	55;"	d
 RD_KAFKA_TOPIC_CONFIG_PRODUCE_OFFSET_REPORT	qbus_constant.h	15;"	d
-RD_KAFKA_TOPIC_MESSAGE_TIMEOUT	qbus_constant.h	16;"	d
-RD_KAFKA_TOPIC_MESSAGE_TIMEOUT_MS	qbus_constant.h	60;"	d
-RECODE_FILE_SIZE	qbus_record_msg.cc	/^static const long RECODE_FILE_SIZE = 100 * 1024 * 1024;$/;"	v	file:
+RD_KAFKA_TOPIC_MESSAGE_RETRIES	qbus_constant.h	16;"	d
+RD_KAFKA_TOPIC_MESSAGE_RETRIES_VALUE	qbus_constant.h	60;"	d
 RECORD_DEFAULT_LOG_FILE_NAME	qbus_record_msg.cc	/^static const char* RECORD_DEFAULT_LOG_FILE_NAME = "record_msg.qbus";$/;"	v	file:
 RECORD_FILE_BACKUP_INDEX	qbus_record_msg.cc	/^static const int RECORD_FILE_BACKUP_INDEX = 24;$/;"	v	file:
 RECORD_LOGGER_NAME	qbus_record_msg.cc	/^static const char* RECORD_LOGGER_NAME = "__record_msg_for_send_fail__";$/;"	v	file:
@@ -140,12 +146,13 @@ Start	qbus_consumer_imp.cc	/^bool QbusConsumerImp::Start() {$/;"	f	class:qbus::Q
 Stop	qbus_consumer_imp.cc	/^void QbusConsumerImp::Stop() {$/;"	f	class:qbus::QbusConsumerImp
 Subscribe	qbus_consumer_imp.cc	/^bool QbusConsumerImp::Subscribe(const std::string& group,$/;"	f	class:qbus::QbusConsumerImp
 TOPIC_CONFIG	qbus_config.cc	/^static const char* TOPIC_CONFIG = "topic";$/;"	m	namespace:qbus	file:
+Uninit	qbus_producer.cc	/^void QbusProducerImp::Uninit() {$/;"	f	class:qbus::QbusProducerImp
 broker_list_	qbus_consumer_imp.h	/^    std::string broker_list_;$/;"	m	class:qbus::QbusConsumerImp
-broker_list_	qbus_producer_imp.h	/^        std::string broker_list_;$/;"	m	class:qbus::QbusProducerImp
+broker_list_	qbus_producer_imp.h	/^    std::string broker_list_;$/;"	m	class:qbus::QbusProducerImp
 cluster_name_	qbus_consumer_imp.h	/^    std::string cluster_name_;$/;"	m	class:qbus::QbusConsumerImp
 commitOffset	qbus_consumer.cc	/^void QbusConsumer::commitOffset(const QbusMsgContentInfo& qbusMsgContentInfo) {$/;"	f	class:qbus::QbusConsumer
 config_loader_	qbus_consumer_imp.h	/^    QbusConfigLoader config_loader_;$/;"	m	class:qbus::QbusConsumerImp
-config_loader_	qbus_producer_imp.h	/^        QbusConfigLoader config_loader_;$/;"	m	class:qbus::QbusProducerImp
+config_loader_	qbus_producer_imp.h	/^    QbusConfigLoader config_loader_;$/;"	m	class:qbus::QbusProducerImp
 consume	qbus_consumer.cc	/^bool QbusConsumer::consume(QbusMsgContentInfo& msg_content_info) {$/;"	f	class:qbus::QbusConsumer
 consumer_poll_time_	qbus_consumer_imp.h	/^    long long consumer_poll_time_; $/;"	m	class:qbus::QbusConsumerImp
 deliveryMsg	qbus_consumer_callback.h	/^    virtual void deliveryMsg(const std::string& topic,$/;"	f	class:qbus::QbusConsumerCallback
@@ -153,26 +160,23 @@ deliveryMsgForCommitOffset	qbus_consumer_callback.h	/^    virtual void deliveryM
 efficacious_topics_	qbus_consumer_imp.h	/^    std::set<std::string> efficacious_topics_;$/;"	m	class:qbus::QbusConsumerImp
 enable_rdkafka_logger_	qbus_consumer_imp.h	/^    bool enable_rdkafka_logger_;$/;"	m	class:qbus::QbusConsumerImp
 end	qbus_producer.cc	/^static __attribute__((destructor)) void end() {$/;"	f	namespace:qbus
-fast_exit_	qbus_producer_imp.h	/^        bool fast_exit_;$/;"	m	class:qbus::QbusProducerImp
+fast_exit_	qbus_producer_imp.h	/^    bool fast_exit_;$/;"	m	class:qbus::QbusProducerImp
 gettid	qbus_helper.cc	13;"	d	file:
 group_	qbus_consumer_imp.h	/^    std::string group_;$/;"	m	class:qbus::QbusConsumerImp
 init	qbus_consumer.cc	/^bool QbusConsumer::init(const std::string& broker_list,$/;"	f	class:qbus::QbusConsumer
 init	qbus_producer.cc	/^bool QbusProducer::init(const std::string& broker_list,$/;"	f	class:qbus::QbusProducer
-init	qbus_producer.cc	/^bool QbusProducerImp::init(const std::string& broker_list,$/;"	f	class:qbus::QbusProducerImp
-init	qbus_record_msg.cc	/^    void QbusRecordMsg::init() {$/;"	f	class:qbus::QbusRecordMsg
-initRdKafkaConfig	qbus_producer.cc	/^bool QbusProducerImp::initRdKafkaConfig() {$/;"	f	class:qbus::QbusProducerImp
-initRdKafkaHandle	qbus_producer.cc	/^bool QbusProducerImp::initRdKafkaHandle(const std::string& topic_name) {$/;"	f	class:qbus::QbusProducerImp
-internalProduce	qbus_producer.cc	/^bool QbusProducerImp::internalProduce(const char* data,$/;"	f	class:qbus::QbusProducerImp
+init	qbus_record_msg.cc	/^void QbusRecordMsg::init() {$/;"	f	class:qbus::QbusRecordMsg
 is_auto_commit_offset_	qbus_consumer_imp.h	/^    bool is_auto_commit_offset_;$/;"	m	class:qbus::QbusConsumerImp
 is_force_destroy_	qbus_consumer_imp.h	/^    bool is_force_destroy_;$/;"	m	class:qbus::QbusConsumerImp
-is_init_	qbus_producer_imp.h	/^        bool is_init_;$/;"	m	class:qbus::QbusProducerImp
-is_record_msg_for_send_failed_	qbus_producer_imp.h	/^        bool is_record_msg_for_send_failed_;$/;"	m	class:qbus::QbusProducerImp
-is_speedup_terminate_	qbus_producer_imp.h	/^        bool is_speedup_terminate_;$/;"	m	class:qbus::QbusProducerImp
-is_sync_send_	qbus_producer_imp.h	/^        bool is_sync_send_;$/;"	m	class:qbus::QbusProducerImp
+is_init_	qbus_producer_imp.h	/^    bool is_init_;$/;"	m	class:qbus::QbusProducerImp
+is_record_msg_for_send_failed_	qbus_producer_imp.h	/^    bool is_record_msg_for_send_failed_;$/;"	m	class:qbus::QbusProducerImp
+is_speedup_terminate_	qbus_producer_imp.h	/^    bool is_speedup_terminate_;$/;"	m	class:qbus::QbusProducerImp
+is_sync_send_	qbus_producer_imp.h	/^    bool is_sync_send_;$/;"	m	class:qbus::QbusProducerImp
 is_user_manual_commit_offset_	qbus_consumer_imp.h	/^    bool is_user_manual_commit_offset_; $/;"	m	class:qbus::QbusConsumerImp
 kInitLog	qbus_helper.cc	/^bool QbusHelper::kInitLog = false;$/;"	m	class:qbus::QbusHelper	file:
 kInitLog	qbus_helper.h	/^    static bool kInitLog;$/;"	m	class:qbus::QbusHelper
 kInitLogMutex	qbus_helper.cc	/^static pthread_mutex_t kInitLogMutex = PTHREAD_MUTEX_INITIALIZER;$/;"	m	namespace:qbus	file:
+kKafkaDestroyTime	qbus_consumer_imp.cc	/^static int kKafkaDestroyTime = 5;$/;"	m	namespace:qbus	file:
 kLogLevel	qbus_helper.cc	/^LUtil::Logger::LOG_LEVEL QbusHelper::kLogLevel = LUtil::Logger::LL_INFO;$/;"	m	class:qbus::QbusHelper	file:
 kLogLevel	qbus_helper.h	/^    static LUtil::Logger::LOG_LEVEL kLogLevel;$/;"	m	class:qbus::QbusHelper
 kLogPath	qbus_helper.h	/^    static std::string kLogPath;$/;"	m	class:qbus::QbusHelper
@@ -183,12 +187,9 @@ last_commit_ms_	qbus_consumer_imp.h	/^    long last_commit_ms_;$/;"	m	class:qbus
 manual_commit_offset_async_	qbus_consumer_imp.h	/^    int manual_commit_offset_async_;$/;"	m	class:qbus::QbusConsumerImp
 manual_commit_time_	qbus_consumer_imp.h	/^    long long manual_commit_time_;$/;"	m	class:qbus::QbusConsumerImp
 msg	qbus_consumer_callback.h	/^  std::string msg;$/;"	m	struct:qbus::QbusMsgContentInfo
-msgDeliveredCallback	qbus_producer.cc	/^void QbusProducerImp::msgDeliveredCallback(rd_kafka_t *rk,$/;"	f	class:qbus::QbusProducerImp
 msg_len	qbus_consumer_callback.h	/^  size_t msg_len;$/;"	m	struct:qbus::QbusMsgContentInfo
-partitionHashFunc	qbus_producer.cc	/^int32_t QbusProducerImp::partitionHashFunc(const rd_kafka_topic_t *rkt,$/;"	f	class:qbus::QbusProducerImp
 poll_thread_id_	qbus_consumer_imp.h	/^    pthread_t poll_thread_id_;$/;"	m	class:qbus::QbusConsumerImp
 produce	qbus_producer.cc	/^bool QbusProducer::produce(const char* data, size_t data_len,$/;"	f	class:qbus::QbusProducer
-produce	qbus_producer.cc	/^bool QbusProducerImp::produce(const char* data,$/;"	f	class:qbus::QbusProducerImp
 qbus	qbus_config.cc	/^namespace qbus {$/;"	n	file:
 qbus	qbus_config.h	/^namespace qbus {$/;"	n
 qbus	qbus_consumer.cc	/^namespace qbus {$/;"	n	file:
@@ -208,20 +209,20 @@ qbus_consumer_imp_	qbus_consumer.h	/^    QbusConsumerImp* qbus_consumer_imp_;$/;
 qbus_producer_imp_	qbus_producer.h	/^    QbusProducerImp* qbus_producer_imp_;$/;"	m	class:qbus::QbusProducer
 rd_kafka_broker_t	qbus_producer.cc	/^typedef  struct rd_kafka_broker_s rd_kafka_broker_t;    \/\/added by zk$/;"	t	typeref:struct:rd_kafka_broker_s	file:
 rd_kafka_conf_	qbus_consumer_imp.h	/^    rd_kafka_conf_t* rd_kafka_conf_;$/;"	m	class:qbus::QbusConsumerImp
-rd_kafka_conf_	qbus_producer_imp.h	/^        rd_kafka_conf_t* rd_kafka_conf_;$/;"	m	class:qbus::QbusProducerImp
+rd_kafka_conf_	qbus_producer_imp.h	/^    rd_kafka_conf_t* rd_kafka_conf_;$/;"	m	class:qbus::QbusProducerImp
 rd_kafka_handle_	qbus_consumer_imp.h	/^    rd_kafka_t* rd_kafka_handle_;$/;"	m	class:qbus::QbusConsumerImp
-rd_kafka_handle_	qbus_producer_imp.h	/^        rd_kafka_t* rd_kafka_handle_;$/;"	m	class:qbus::QbusProducerImp
-rd_kafka_topic_	qbus_producer_imp.h	/^        rd_kafka_topic_t* rd_kafka_topic_;$/;"	m	class:qbus::QbusProducerImp
+rd_kafka_handle_	qbus_producer_imp.h	/^    rd_kafka_t* rd_kafka_handle_;$/;"	m	class:qbus::QbusProducerImp
+rd_kafka_topic_	qbus_producer_imp.h	/^    rd_kafka_topic_t* rd_kafka_topic_;$/;"	m	class:qbus::QbusProducerImp
 rd_kafka_topic_conf_	qbus_consumer_imp.h	/^    rd_kafka_topic_conf_t* rd_kafka_topic_conf_;$/;"	m	class:qbus::QbusConsumerImp
-rd_kafka_topic_conf_	qbus_producer_imp.h	/^        rd_kafka_topic_conf_t* rd_kafka_topic_conf_;$/;"	m	class:qbus::QbusProducerImp
+rd_kafka_topic_conf_	qbus_producer_imp.h	/^    rd_kafka_topic_conf_t* rd_kafka_topic_conf_;$/;"	m	class:qbus::QbusProducerImp
 rd_message	qbus_consumer_callback.h	/^  rd_kafka_message_s *rd_message;$/;"	m	struct:qbus::QbusMsgContentInfo
 rdkafka_rebalance_cb	qbus_consumer_imp.cc	/^void QbusConsumerImp::rdkafka_rebalance_cb(rd_kafka_t *rk,$/;"	f	class:qbus::QbusConsumerImp
-recordMsg	qbus_record_msg.cc	/^    void QbusRecordMsg::recordMsg(const std::string& topic, const std::string& msg) {$/;"	f	class:qbus::QbusRecordMsg
+recordMsg	qbus_record_msg.cc	/^void QbusRecordMsg::recordMsg(const std::string& topic, const std::string& msg) {$/;"	f	class:qbus::QbusRecordMsg
 root_tree_	qbus_config.h	/^    pt::ptree root_tree_;$/;"	m	class:qbus::QbusConfigLoader
-sInit	qbus_record_msg.cc	/^    bool QbusRecordMsg::sInit = false;$/;"	m	class:qbus::QbusRecordMsg	file:
-sInit	qbus_record_msg.h	/^        static bool sInit;$/;"	m	class:qbus::QbusRecordMsg
-sLogger	qbus_record_msg.cc	/^    log4cplus::Logger QbusRecordMsg::sLogger = log4cplus::Logger::getInstance(RECORD_LOGGER_NAME);$/;"	m	class:qbus::QbusRecordMsg	file:
-sLogger	qbus_record_msg.h	/^        static log4cplus::Logger sLogger;$/;"	m	class:qbus::QbusRecordMsg
+sInit	qbus_record_msg.cc	/^bool QbusRecordMsg::sInit = false;$/;"	m	class:qbus::QbusRecordMsg	file:
+sInit	qbus_record_msg.h	/^    static bool sInit;$/;"	m	class:qbus::QbusRecordMsg
+sLogger	qbus_record_msg.cc	/^log4cplus::Logger QbusRecordMsg::sLogger = log4cplus::Logger::getInstance(RECORD_LOGGER_NAME);$/;"	m	class:qbus::QbusRecordMsg	file:
+sLogger	qbus_record_msg.h	/^    static log4cplus::Logger sLogger;$/;"	m	class:qbus::QbusRecordMsg
 set_global_config_items_	qbus_config.h	/^    pt::ptree set_global_config_items_;$/;"	m	class:qbus::QbusConfigLoader
 set_sdk_configs_	qbus_config.h	/^    pt::ptree set_sdk_configs_;$/;"	m	class:qbus::QbusConfigLoader
 set_topic_config_items_	qbus_config.h	/^    pt::ptree set_topic_config_items_;$/;"	m	class:qbus::QbusConfigLoader
@@ -230,11 +231,10 @@ start_flag_	qbus_consumer_imp.h	/^    bool start_flag_;$/;"	m	class:qbus::QbusCo
 stop	qbus_consumer.cc	/^void QbusConsumer::stop() {$/;"	f	class:qbus::QbusConsumer
 subscribe	qbus_consumer.cc	/^bool QbusConsumer::subscribe(const std::string& group,$/;"	f	class:qbus::QbusConsumer
 subscribeOne	qbus_consumer.cc	/^bool QbusConsumer::subscribeOne(const std::string& group,$/;"	f	class:qbus::QbusConsumer
-sync_send_err_	qbus_producer_imp.h	/^        rd_kafka_resp_err_t sync_send_err_;$/;"	m	class:qbus::QbusProducerImp
+sync_send_err_	qbus_producer_imp.h	/^    rd_kafka_resp_err_t sync_send_err_;$/;"	m	class:qbus::QbusProducerImp
 topic	qbus_consumer_callback.h	/^  std::string topic;$/;"	m	struct:qbus::QbusMsgContentInfo
 topics_	qbus_consumer_imp.h	/^    std::vector<std::string> topics_;$/;"	m	class:qbus::QbusConsumerImp
 uninit	qbus_producer.cc	/^void QbusProducer::uninit() {$/;"	f	class:qbus::QbusProducer
-uninit	qbus_producer.cc	/^void QbusProducerImp::uninit() {$/;"	f	class:qbus::QbusProducerImp
 wait_commit_msgs_	qbus_consumer_imp.h	/^    std::map<std::string, rd_kafka_message_t*> wait_commit_msgs_;$/;"	m	class:qbus::QbusConsumerImp
 wait_commit_msgs_mutex_	qbus_consumer_imp.h	/^    pthread_mutex_t wait_commit_msgs_mutex_;$/;"	m	class:qbus::QbusConsumerImp
 wait_destroy_msgs_for_uncommit_	qbus_consumer_imp.h	/^    std::map<std::string, RdkafkaMsgVectorType> wait_destroy_msgs_for_uncommit_;$/;"	m	class:qbus::QbusConsumerImp

@@ -323,8 +323,8 @@ bool QbusProducerImp::InitRdKafkaConfig() {
 
       if (!config_loader_.IsSetConfig(RD_KAFKA_TOPIC_MESSAGE_TIMEOUT, true)) {
         QbusHelper::SetRdKafkaTopicConfig(rd_kafka_topic_conf_,
-            RD_KAFKA_TOPIC_MESSAGE_TIMEOUT,
-            RD_KAFKA_TOPIC_MESSAGE_TIMEOUT_MS);
+            RD_KAFKA_TOPIC_MESSAGE_RETRIES,
+            RD_KAFKA_TOPIC_MESSAGE_RETRIES_VALUE);
       }
 
       if (!config_loader_.IsSetConfig(RD_KAFKA_CONFIG_TOPIC_METADATA_REFRESH_INTERVAL, false)) {
