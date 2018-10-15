@@ -321,7 +321,7 @@ bool QbusProducerImp::InitRdKafkaConfig() {
 
       rd_kafka_topic_conf_set_partitioner_cb(rd_kafka_topic_conf_, &QbusProducerImp::PartitionHashFunc);
 
-      if (!config_loader_.IsSetConfig(RD_KAFKA_TOPIC_MESSAGE_RETRIE, true)) {
+      if (!config_loader_.IsSetConfig(RD_KAFKA_TOPIC_MESSAGE_RETRIES, true)) {
         QbusHelper::SetRdKafkaTopicConfig(rd_kafka_topic_conf_,
             RD_KAFKA_TOPIC_MESSAGE_RETRIES,
             RD_KAFKA_TOPIC_MESSAGE_RETRIES_VALUE);
