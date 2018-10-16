@@ -15,7 +15,10 @@
 
 ***依赖liblog4cplus, boost, swig-3.0.12, cmake***
 
-##### *cxx/c*
+#### git clone
+git clone --recursive https://github.com/Qihoo360/kafkabridge.git
+
+#### *cxx/c*
  进入cxx/c目录，执行build.sh -release，在./lib/release下会产生libqbus.so。
 
 #### *go*
