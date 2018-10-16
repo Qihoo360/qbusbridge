@@ -16,6 +16,9 @@
 
 ***Dependencies: liblog4cplus, boost, swig-3.0.12, cmake***
 
+#### git clone:
+git clone --recursive https://github.com/Qihoo360/kafkabridge.git
+
 ##### *cxx/c*
 Navigate to the cxx/c installation directory，and run `build.sh -release`, you will get a new file named libqbus.so in the "./lib/release" directory.
 
