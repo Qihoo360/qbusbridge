@@ -13,7 +13,7 @@
 
 ## 编译
 
-***依赖liblog4cplus, boost, swig-3.0.12, cmake***
+***依赖liblog4cplus-1.2.1, boost, swig-3.0.12, cmake***
 
 #### git clone
 git clone --recursive https://github.com/Qihoo360/kafkabridge.git
