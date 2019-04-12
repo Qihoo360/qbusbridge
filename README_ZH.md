@@ -29,7 +29,7 @@ git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 编译脚本提供了选项，可以通过-h查看。可以通过-s选项传递python相关头文件路径。默认-s /usr/local/python2.7/include/python2.7
 
 #### *php*
-进入python目录, 执行build.sh，当前目录生成扩展qbus.so和qbus.php。
+进入php目录, 执行build.sh，当前目录生成扩展qbus.so和qbus.php。
 编译脚本提供了选项，可以通过-h查看。可以通过s选项传递php相关头文件路径，可以通过-v传递php的版本。默认选项-s /usr/local/php -v php。
 
 
