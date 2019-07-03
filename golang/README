@@ -1,5 +1,7 @@
 1. 编译
-   执行./build.sh
+   依赖librdkafka，先执行：
+   kafkabridge/cxx/build_librdkafka.sh 
+   再执行./build.sh
 
 2.在当前目当下将产生gopath/src/qbus目录，里面有qbus.go和libQBus_go.so文件
 
