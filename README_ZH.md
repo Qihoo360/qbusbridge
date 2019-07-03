@@ -22,6 +22,7 @@ git clone --recursive https://github.com/Qihoo360/kafkabridge.git
  进入cxx/c目录，执行build.sh -release，在./lib/release下会产生libqbus.so。
 
 #### *go*
+依赖librdkafka 先执行：kafkabridge/cxx/build_librdkafka.sh
 进入go目录，执行build.sh，在gopath/src/qbus 目录下生成qbus.go和libQBus_go.so。
 
 #### *python*
