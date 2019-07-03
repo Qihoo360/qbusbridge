@@ -23,7 +23,7 @@ git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 Navigate to the cxx/c installation directory，and run `build.sh -release`, you will get a new file named libqbus.so in the "./lib/release" directory.
 
 #### *go*
-Navigate to the Go installation directory，and run `build.sh`, you will get the new files qbus.go and libQBus_go.so in the directory "gopath/src/qbus".
+First run kafkabridge/cxx/build_librdkafka.sh. Navigate to the Go installation directory，and run `build.sh`, you will get the new files qbus.go and libQBus_go.so in the directory "gopath/src/qbus".
 
 #### *python*
 Navigate to the Python installation directory, run `build.sh`, that will generate two files, qbus.py and _qbus.so in the current directory.
