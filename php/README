@@ -2,5 +2,5 @@
 2. 生成的qbus.so和qbus.php为所需拓展和文件，拷贝到php的extensions目录下，并设置php.ini
 2. cd examples
 3. run examples
-3.1 producer: php  producer.php <topic> <sync_send?> <key>
-3.2 consumer: php  consumer.php <topic> <group>
+3.1 producer: php  producer.php <brokerlist> <topic> <sync_send?> <key>
+3.2 consumer: php  consumer.php <brokerlist> <topic> <group>
