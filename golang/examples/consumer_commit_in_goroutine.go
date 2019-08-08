@@ -5,12 +5,11 @@ import (
 	"os"
 	"os/signal"
 	"qbus"
-	"time"
 )
 
-//var qbus_consumer qbus.QbusConsumer = nil
-var qbus_consumer = qbus.NewQbusConsumer()
-var msg_chan = make(chan *qbus.QbusMsgContentInfo, 1000)
+//var qbusConsumer qbus.QbusConsumer = nil
+var qbusConsumer = qbus.NewQbusConsumer()
+var msgChan = make(chan *qbus.QbusMsgContentInfo, 1000)
 
 type GoCallback struct {
 }
@@ -22,17 +21,17 @@ func (p *GoCallback) DeliveryMsg(topic string, msg string, msg_len int64) {
 }
 
 //纯手工提交offset, 需要在consumer.config中添加user.manual.commit.offset=true
-func (p *GoCallback) DeliveryMsgForCommitOffset(msg_info qbus.QbusMsgContentInfo) {
+func (p *GoCallback) DeliveryMsgForCommitOffset(msgInfo qbus.QbusMsgContentInfo) {
 	fmt.Printf("User commit offset | Topic:%s | msg: %v\n",
-		msg_info.GetTopic(),
-		msg_info.GetRd_message())
+		msgInfo.GetTopic(),
+		msgInfo.GetRd_message())
 
-	msg_info_new := qbus.NewQbusMsgContentInfo()
-	msg_info_new.SetTopic(msg_info.GetTopic())
-	msg_info_new.SetMsg(msg_info.GetMsg())
-	msg_info_new.SetMsg_len(msg_info.GetMsg_len())
-	msg_info_new.SetRd_message(msg_info.GetRd_message())
-	msg_chan <- &msg_info_new
+	msgInfoNew := qbus.NewQbusMsgContentInfo()
+	msgInfoNew.SetTopic(msgInfo.GetTopic())
+	msgInfoNew.SetMsg(msgInfo.GetMsg())
+	msgInfoNew.SetMsg_len(msgInfo.GetMsg_len())
+	msgInfoNew.SetRd_message(msgInfo.GetRd_message())
+	msgChan <- &msgInfoNew
 }
 
 func main() {
@@ -43,50 +42,48 @@ func main() {
 
 	fmt.Printf("topic: %s | group: %s\n", os.Args[1], os.Args[2])
 
-	running := true
+	topic := os.Args[1]
+	group := os.Args[2]
+	cluster := os.Args[3]
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
+
+	done := make(chan bool, 1)
 	go func() {
 		for sig := range c {
 			fmt.Printf("received ctrl+c(%v)\n", sig)
-			//os.Exit(0)
-			running = false
+			done <- true
 		}
 	}()
 
 	callback := qbus.NewDirectorQbusConsumerCallback(&GoCallback{})
-	//qbus_consumer := qbus.NewQbusConsumer()
-	if !qbus_consumer.Init(os.Args[3],
-		"consumer.log",
-		"./consumer.config",
-		callback) {
+	//qbusConsumer := qbus.NewQbusConsumer()
+	if !qbusConsumer.Init(cluster, "consumer.log", "./consumer.config", callback) {
 		fmt.Println("Failed to Init")
 		os.Exit(0)
 	}
 
-	if !qbus_consumer.SubscribeOne(os.Args[2], os.Args[1]) {
+	if !qbusConsumer.SubscribeOne(group, topic) {
 		fmt.Println("Failed to SubscribeOne")
 		os.Exit(0)
 	}
 
 	go func() {
-		for msg_info := range msg_chan {
-			qbus_consumer.CommitOffset(*msg_info)
-			qbus.DeleteQbusMsgContentInfo(*msg_info)
+		for msgInfo := range msgChan {
+			qbusConsumer.CommitOffset(*msgInfo)
+			qbus.DeleteQbusMsgContentInfo(*msgInfo)
 		}
 	}()
 
-	qbus_consumer.Start()
+	qbusConsumer.Start()
 
-	for running {
-		time.Sleep(1 * time.Second)
+	if <- done {
+		qbusConsumer.Stop()
+		qbus.DeleteQbusConsumer(qbusConsumer)
+		qbus.DeleteDirectorQbusConsumerCallback(callback)
+
+		close(msgChan)
 	}
 
-	qbus_consumer.Stop()
-
-	qbus.DeleteQbusConsumer(qbus_consumer)
-	qbus.DeleteDirectorQbusConsumerCallback(callback)
-
-	close(msg_chan)
 }

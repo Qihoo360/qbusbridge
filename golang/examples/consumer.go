@@ -5,28 +5,27 @@ import (
 	"os"
 	"os/signal"
 	"qbus"
-	"time"
 )
 
-//var qbus_consumer qbus.QbusConsumer = nil
-var qbus_consumer = qbus.NewQbusConsumer()
+//var qbusConsumer qbus.QbusConsumer = nil
+var qbusConsumer = qbus.NewQbusConsumer()
 
 type GoCallback struct {
 }
 
-func (p *GoCallback) DeliveryMsg(topic string, msg string, msg_len int64) {
+func (p *GoCallback) DeliveryMsg(topic string, msg string, msgLen int64) {
 	//fmt.Printf("Topic:%s | msg:%s\n", topic, string(msg[0:msg_len]))
 	//fmt.Printf("Topic:%s | msg:%d\n", topic, msg_len)
 	fmt.Printf("Topic:%s | msg:%s\n", topic, msg)
 }
 
 //纯手工提交offset, 需要在consumer.config中添加user.manual.commit.offset=true
-func (p *GoCallback) DeliveryMsgForCommitOffset(msg_info qbus.QbusMsgContentInfo) {
+func (p *GoCallback) DeliveryMsgForCommitOffset(msgInfo qbus.QbusMsgContentInfo) {
 	fmt.Printf("User commit offset | Topic:%s | msg:%s\n",
-		msg_info.GetTopic(),
-		msg_info.GetMsg())
+		msgInfo.GetTopic(),
+		msgInfo.GetMsg())
 
-	qbus_consumer.CommitOffset(msg_info)
+	qbusConsumer.CommitOffset(msgInfo)
 }
 
 func main() {
@@ -37,41 +36,39 @@ func main() {
 
 	fmt.Printf("topic: %s | group: %s\n", os.Args[1], os.Args[2])
 
-	running := true
+	topic := os.Args[1]
+	group := os.Args[2]
+	cluster := os.Args[3]
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
+
+	done := make(chan bool, 1)
 	go func() {
 		for sig := range c {
 			fmt.Printf("received ctrl+c(%v)\n", sig)
-			//os.Exit(0)
-			running = false
+			done <- true
 		}
 	}()
 
 	callback := qbus.NewDirectorQbusConsumerCallback(&GoCallback{})
-	//qbus_consumer := qbus.NewQbusConsumer()
-	if !qbus_consumer.Init(os.Args[3],
-		"consumer.log",
-		"./consumer.config",
-		callback) {
+	if !qbusConsumer.Init(cluster, "consumer.log", "./consumer.config", callback) {
 		fmt.Println("Failed to Init")
 		os.Exit(0)
 	}
 
-	if !qbus_consumer.SubscribeOne(os.Args[2], os.Args[1]) {
+	if !qbusConsumer.SubscribeOne(group, topic) {
 		fmt.Println("Failed to SubscribeOne")
 		os.Exit(0)
 	}
 
-	qbus_consumer.Start()
+	qbusConsumer.Start()
 
-	for running {
-		time.Sleep(1 * time.Second)
+	if <-done {
+		fmt.Println("done")
+		qbusConsumer.Stop()
+		qbus.DeleteQbusConsumer(qbusConsumer)
+		qbus.DeleteDirectorQbusConsumerCallback(callback)
 	}
 
-	qbus_consumer.Stop()
-
-	qbus.DeleteQbusConsumer(qbus_consumer)
-	qbus.DeleteDirectorQbusConsumerCallback(callback)
 }

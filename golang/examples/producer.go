@@ -14,11 +14,11 @@ func main() {
 		return
 	}
 
-	qbus_producer := qbus.NewQbusProducer()
-	if !qbus_producer.Init(os.Args[2],
-		"./producer.log",
-		"./producer.config",
-		os.Args[1]) {
+	topic := os.Args[1]
+	cluster := os.Args[2]
+
+	qbusProducer := qbus.NewQbusProducer()
+	if !qbusProducer.Init(cluster, "./producer.log", "./producer.config", topic) {
 		fmt.Printf("Failed to Init")
 		return
 	}
@@ -32,7 +32,7 @@ func main() {
 		if msg == "stop" {
 			running = false
 		} else {
-			if !qbus_producer.Produce(msg, (int64)(len(msg)), "") {
+			if !qbusProducer.Produce(msg, (int64)(len(msg)), "") {
 				fmt.Print("Failed to Produce")
 				//Retry to Produce
 			}
@@ -40,7 +40,7 @@ func main() {
 		}
 	}
 
-	qbus_producer.Uninit()
+	qbusProducer.Uninit()
 
-	qbus.DeleteQbusProducer(qbus_producer)
+	qbus.DeleteQbusProducer(qbusProducer)
 }
