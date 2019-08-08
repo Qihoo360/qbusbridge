@@ -67,7 +67,7 @@ bool QbusConsumerImp::Init(const std::string& log_path,
   bool rt = QbusHelper::GetQbusBrokerList(config_loader_, &broker_list_);
   INFO(__FUNCTION__ << " | Start init | qbus cluster: " << cluster_name_
       << " | config: " << config_path
-      << " | broker_lsit:" << broker_list_);
+      << " | broker_list:" << broker_list_);
 
   return (rt && InitRdKafka());
 } 

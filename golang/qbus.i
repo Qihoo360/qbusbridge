@@ -15,3 +15,7 @@
 %include "../cxx/src/qbus_producer.h"
 %include "../cxx/src/qbus_consumer.h"
 %include "../cxx/src/qbus_consumer_callback.h"
+
+%insert(cgo_comment_typedefs) %{
+#cgo LDFLAGS:"-g -O2 -L./ -lQBus_go"
+%}
