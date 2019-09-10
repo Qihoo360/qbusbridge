@@ -1,11 +1,16 @@
-#/usr/bin
-echo "1. 先将安装包解压缩后的gopath目录加入GOPATH; 2. 修改 QBUS_GO_SO_PATH为你解压缩后目录/gopath/src/qbus"
-QBUS_GO_SO_PATH="`pwd`/../gopath/src/qbus"
-export GOPATH="`pwd`/../gopath"
-export CGO_LDFLAGS="-L$QBUS_GO_SO_PATH -lQBus_go" 
+#!/bin/bash
+echo "1. 先将安装包解压缩后的gopath目录加入GOPATH;"
+echo "2. 要运行编译后的文件，请手动将libQBus_go.so路径加入LD_LIBRARY_PATH，比如"
+echo '  LD_LIBRARY_PATH=$PWD/../gopath/src/qbus ./consumer'
+export GOPATH="$PWD/../gopath"
 
-go build consumer.go
-go build producer.go
-go build producer_goroutine.go
-
-export LD_LIBRARY_PATH=$QBUS_GO_SO_PATH
+TARGETS=( \
+	consumer \
+	producer \
+	consumer_commit_in_goroutine
+)
+for TARGET in "${TARGETS[@]}"; do
+	COMMAND="go build $TARGET.go"
+	echo $COMMAND
+	eval $COMMAND
+done
