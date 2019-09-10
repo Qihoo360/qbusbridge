@@ -1,0 +1,7 @@
+build/
+bin/
+lib/
+*.log
+*.o
+tags
+.ycm_extra_conf.py

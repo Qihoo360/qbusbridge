@@ -8,17 +8,18 @@
 namespace qbus {
 
 class QbusRecordMsg {
-  public:
-    static void recordMsg(const std::string& topic, const std::string& msg);
+ public:
+  static void recordMsg(const std::string& topic, const std::string& msg);
 
-  private:
-    static void init();
-  private:
-    static log4cplus::Logger sLogger;
-    static bool sInit;
+ private:
+  static void init();
 
-  private:
-    QbusRecordMsg();
+ private:
+  static log4cplus::Logger sLogger;
+  static bool sInit;
+
+ private:
+  QbusRecordMsg();
 };
-}
-#endif// #ifndef QBUS_RECORD_MSG_H_
+}  // namespace qbus
+#endif  // #ifndef QBUS_RECORD_MSG_H_
