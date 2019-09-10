@@ -7,12 +7,8 @@
 //-----------------------------------------------------
 namespace qbus {
 
-class QbusSqliteProducer;
-
 class QbusProducerImp {
  public:
-  friend class QbusSqliteProducer;
-
   QbusProducerImp();
   ~QbusProducerImp();
 

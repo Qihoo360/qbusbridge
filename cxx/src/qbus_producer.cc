@@ -84,7 +84,7 @@ void QbusProducerImp::Uninit() {
   rd_kafka_poll(rd_kafka_handle_, 0);
   if (is_init_) is_init_ = false;
 
-  INFO(__FUNCTION__ << " | Startting uninit...");
+  INFO(__FUNCTION__ << " | Starting uninit...");
 
   if (NULL != rd_kafka_handle_ && NULL != rd_kafka_topic_) {
     int current_poll_time = 0;
@@ -215,7 +215,7 @@ void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t* rk,
           << (NULL != rd_kafka_topic_name(producer->rd_kafka_topic_)
                   ? rd_kafka_topic_name(producer->rd_kafka_topic_)
                   : "")
-          << " | partiton: " << rkmessage->partition << " | msg:"
+          << " | partition: " << rkmessage->partition << " | msg:"
           << (NULL != rkmessage->payload
                   ? std::string(static_cast<char*>(rkmessage->payload),
                                 rkmessage->len)
@@ -432,7 +432,7 @@ bool QbusProducer::init(const std::string& broker_list,
     rt = qbus_producer_imp_->Init(broker_list, log_path, topic_name,
                                   config_path);
     if (rt) {
-      INFO(__FUNCTION__ << " | Procuder init is OK!");
+      INFO(__FUNCTION__ << " | Producer init is OK!");
     } else {
       ERROR(__FUNCTION__ << " | Failed to init");
     }

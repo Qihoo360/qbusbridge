@@ -28,7 +28,7 @@ class MyCallback : public qbus::QbusConsumerCallback {
   virtual void deliveryMsgForCommitOffset(
       const qbus::QbusMsgContentInfo& msg_info) const {
     static int count = 0;
-    std::cout << "user manual committ offset | topic: " << msg_info.topic
+    std::cout << "user manual commit offset | topic: " << msg_info.topic
               << " | msg: " << msg_info.msg << std::endl;
     if (count == 100) {
       qbus_consumer.commitOffset(msg_info);
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     kConfigPath = argv[3];
     kClusterName = argv[4];
   } else {
-    std::cout << "Usage: qbsu_consumer_example topic_name group_name "
+    std::cout << "Usage: ./qbus_consumer_example topic_name group_name "
                  "config_full_path cluster_list"
               << std::endl;
     return 0;

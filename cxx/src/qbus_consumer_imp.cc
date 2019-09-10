@@ -63,7 +63,7 @@ bool QbusConsumerImp::Init(const std::string& log_path,
   int status = pthread_mutex_init(&wait_commit_msgs_mutex_, NULL);
   if (0 != status) {
     ERROR(__FUNCTION__
-          << " | Faile to pthread_mutex_init for wait_commit_msgs_mutex_"
+          << " | Failed to pthread_mutex_init for wait_commit_msgs_mutex_"
           << " | error code:" << status);
     return false;
   }
@@ -71,7 +71,7 @@ bool QbusConsumerImp::Init(const std::string& log_path,
   bool rt = QbusHelper::GetQbusBrokerList(config_loader_, &broker_list_);
   INFO(__FUNCTION__ << " | Start init | qbus cluster: " << cluster_name_
                     << " | config: " << config_path
-                    << " | broker_lsit:" << broker_list_);
+                    << " | broker_list:" << broker_list_);
 
   return (rt && InitRdKafka());
 }
@@ -315,7 +315,7 @@ bool QbusConsumerImp::Subscribe(const std::string& group,
 }
 
 bool QbusConsumerImp::Start() {
-  INFO(__FUNCTION__ << " | Startting consume...")
+  INFO(__FUNCTION__ << " | Starting to consume...")
 
   bool rt = true;
 
@@ -337,7 +337,7 @@ bool QbusConsumerImp::Start() {
 }
 
 void QbusConsumerImp::Stop() {
-  INFO(__FUNCTION__ << " | Startting stop consumer..."
+  INFO(__FUNCTION__ << " | Starting to stop consumer..."
                     << " | is_auto_commit_offset:" << is_auto_commit_offset_
                     << " | is_user_manual_commit_offset:"
                     << is_user_manual_commit_offset_ << " | is_force_destroy:"
@@ -359,10 +359,10 @@ void QbusConsumerImp::Stop() {
     }
   }
 
-  INFO(__FUNCTION__ << " | Startting clean rdkafka...");
+  INFO(__FUNCTION__ << " | Starting clean rdkafka...");
 
   if (NULL != rd_kafka_handle_) {
-    INFO(__FUNCTION__ << " | Startting consumer close...");
+    INFO(__FUNCTION__ << " | Starting consumer close...");
     rd_kafka_resp_err_t err = rd_kafka_consumer_close(rd_kafka_handle_);
     if (RD_KAFKA_RESP_ERR_NO_ERROR != err) {
       ERROR(__FUNCTION__ << " | Failed to close consumer | err msg: "
@@ -370,7 +370,7 @@ void QbusConsumerImp::Stop() {
     }
   }
 
-  INFO(__FUNCTION__ << " | Startting destory rdkafka...");
+  INFO(__FUNCTION__ << " | Starting destroy rdkafka...");
 
   if (NULL != rd_kafka_handle_) {
     if (is_user_manual_commit_offset_ && is_force_destroy_) {
@@ -380,7 +380,7 @@ void QbusConsumerImp::Stop() {
     rd_kafka_handle_ = NULL;
   }
 
-  INFO(__FUNCTION__ << " | Startting wait destoryed rdkafka...");
+  INFO(__FUNCTION__ << " | Starting wait destroyed rdkafka...");
   /* Let background threads clean up and terminate cleanly. */
   int run = kKafkaDestroyTime;
   while (run-- > 0 && rd_kafka_wait_destroyed(1000) == -1) {
@@ -445,7 +445,7 @@ bool QbusConsumerImp::Consume(QbusMsgContentInfo& msg_content_info) {
         if (!is_user_manual_commit_offset_) {
           AddWaitCommitOffset(rkmessage);
         } else {
-          AddWatiDestroyMsgs(rkmessage);
+          AddWaitDestroyMsgs(rkmessage);
         }
       } else {
         rd_kafka_message_destroy(rkmessage);
@@ -474,7 +474,7 @@ void QbusConsumerImp::CommitOffset(
       AddWaitCommitOffset(qbusMsgContentInfo.rd_message);
 
       if (is_user_manual_commit_offset_) {
-        RemoveWatiDestroyMsgs(qbusMsgContentInfo.rd_message);
+        RemoveWaitDestroyMsgs(qbusMsgContentInfo.rd_message);
       }
     }
   }
@@ -510,7 +510,7 @@ void QbusConsumerImp::ClearWaitDestroyMsgs() {
   pthread_mutex_unlock(&wait_commit_msgs_mutex_);
 }
 
-void QbusConsumerImp::AddWatiDestroyMsgs(rd_kafka_message_t* rd_kafka_message) {
+void QbusConsumerImp::AddWaitDestroyMsgs(rd_kafka_message_t* rd_kafka_message) {
   std::string key = GetWaitOffsetKey(rd_kafka_message);
 
   pthread_mutex_lock(&wait_commit_msgs_mutex_);
@@ -528,7 +528,7 @@ void QbusConsumerImp::AddWatiDestroyMsgs(rd_kafka_message_t* rd_kafka_message) {
   pthread_mutex_unlock(&wait_commit_msgs_mutex_);
 }
 
-void QbusConsumerImp::RemoveWatiDestroyMsgs(
+void QbusConsumerImp::RemoveWaitDestroyMsgs(
     rd_kafka_message_t* rd_kafka_message) {
   std::string key = GetWaitOffsetKey(rd_kafka_message);
 
@@ -589,7 +589,7 @@ void* QbusConsumerImp::ConsumePollThread(void* arg) {
           if (!consumer->is_user_manual_commit_offset_) {
             consumer->AddWaitCommitOffset(rdkafka_message);
           } else {
-            consumer->AddWatiDestroyMsgs(rdkafka_message);
+            consumer->AddWaitDestroyMsgs(rdkafka_message);
           }
           consumer->ReceivedConsumeMsg(rdkafka_message, NULL);
         } else {
@@ -690,12 +690,12 @@ void QbusConsumerImp::rdkafka_rebalance_cb(
     rd_kafka_topic_partition_list_t* partitions, void* opaque) {
   switch (err) {
     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS: {
-      DEBUG(__FUNCTION__ << " | rebalnace result OK: "
+      DEBUG(__FUNCTION__ << " | rebalance result OK: "
                          << QbusHelper::FormatTopicPartitionList(partitions));
       rd_kafka_assign(rk, partitions);
     } break;
     case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS: {
-      DEBUG(__FUNCTION__ << " | rebalnace result revoke | msg: "
+      DEBUG(__FUNCTION__ << " | rebalance result revoke | msg: "
                          << rd_kafka_err2str(err) << " | "
                          << QbusHelper::FormatTopicPartitionList(partitions));
       QbusConsumerImp* consumer_imp = static_cast<QbusConsumerImp*>(opaque);

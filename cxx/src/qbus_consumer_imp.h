@@ -59,8 +59,8 @@ class QbusConsumerImp {
   void AddWaitCommitOffset(rd_kafka_message_t* rd_kafka_message);
   std::string GetWaitOffsetKey(rd_kafka_message_t* msg);
   void ClearWaitDestroyMsgs();
-  void AddWatiDestroyMsgs(rd_kafka_message_t* rd_kafka_message);
-  void RemoveWatiDestroyMsgs(rd_kafka_message_t* rd_kafka_message);
+  void AddWaitDestroyMsgs(rd_kafka_message_t* rd_kafka_message);
+  void RemoveWaitDestroyMsgs(rd_kafka_message_t* rd_kafka_message);
 
  private:
   rd_kafka_conf_t* rd_kafka_conf_;

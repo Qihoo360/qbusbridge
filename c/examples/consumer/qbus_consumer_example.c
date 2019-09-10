@@ -4,7 +4,7 @@
 
 #include "qbus_consumer.h"
 
-//如果想使用纯手动提交offset,请打开下面的注释,并且需要在consumer.config中设置user.manual.commit.offset=true,详情见wiki:http://add.corp.qihoo.net:8360/pages/viewpage.action?pageId=13787969
+//如果想使用纯手动提交offset,请打开下面的注释,并且需要在consumer.config中设置user.manual.commit.offset=true
 //采用纯手动提交offset模式,需要调用InitQbusConsumerEx作初始化,而不是InitQbusConsumer
 //对于绝大多数应用,这个不是必需的
 //#define USE_COMMIT_OFFSET_CALLBACK
@@ -29,7 +29,7 @@ void Stop(int s) { kStop = 1; }
 
 int main(int argc, char* argv[]) {
   if (argc < 4) {
-    printf("Usage: qbuns_consumer topic group cluster_name\n");
+    printf("Usage: qbus_consumer topic group cluster_name\n");
     return 0;
   }
 

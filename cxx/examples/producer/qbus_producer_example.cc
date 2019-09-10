@@ -18,10 +18,10 @@ int main(int argc, const char* argv[]) {
 
   if (argc > 5) {
     topic_name = argv[1];
-    std::cout << " Topic: " << topic_name << std::endl;
+    std::cout << "Topic: " << topic_name << std::endl;
   } else {
-    std::cout << "qbus_producer_example topic key[\"\" or ] send_count "
-                 "config_full_path cluster_list"
+    std::cout << "Usage: ./qbus_producer_example topic key[\"\" or ] "
+                 "send_count config_full_path cluster_list"
               << std::endl;
     return 0;
   }
@@ -79,7 +79,7 @@ int main(int argc, const char* argv[]) {
   int64_t end_time_ms =
       ((long)now_time.tv_sec) * 1000 + (long)now_time.tv_usec / 1000;
 
-  std::cout << "banche mark: " << end_time_ms - start_time_ms << std::endl;
+  std::cout << "benchmark: " << end_time_ms - start_time_ms << std::endl;
 
   return 0;
 }
