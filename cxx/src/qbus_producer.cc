@@ -6,23 +6,14 @@
 #include <map>
 #include <set>
 
-#include <thirdparts/librdkafka/src/rdkafka.h>
-
 #include "util/logger.h"
 
 #include "qbus_config.h"
 #include "qbus_constant.h"
 #include "qbus_helper.h"
 #include "qbus_producer_imp.h"
+#include "qbus_rdkafka.h"
 #include "qbus_record_msg.h"
-//----------------------------------------------------------------------
-extern "C" {
-typedef struct rd_kafka_broker_s rd_kafka_broker_t;  // added by zk
-rd_kafka_broker_t* rd_kafka_broker_any(rd_kafka_t* rk, int state,
-                                       int (*filter)(rd_kafka_broker_t* rkb,
-                                                     void* opaque),
-                                       void* opaque);
-}
 //----------------------------------------------------------------------
 namespace qbus {
 
@@ -193,7 +184,7 @@ void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t* rk,
   if (producer->is_sync_send_) {
     producer->sync_send_err_ = rkmessage->err;
   } else if (rkmessage->err && producer->is_init_ &&
-             rd_kafka_broker_any(rk, 4, NULL, NULL)) {  // added by zk
+             rdkafka::hasAnyBroker(rk)) {
     if (NULL == producer->rd_kafka_handle_ ||
         -1 == rd_kafka_produce(producer->rd_kafka_topic_, RD_KAFKA_PARTITION_UA,
                                RD_KAFKA_MSG_F_COPY, rkmessage->payload,

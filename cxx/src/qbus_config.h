@@ -5,7 +5,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 
-#include "thirdparts/librdkafka/src/rdkafka.h"
+#include "qbus_rdkafka.h"
 
 namespace pt = boost::property_tree;
 

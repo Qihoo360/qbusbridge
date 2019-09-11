@@ -5,9 +5,8 @@
 
 #include <pthread.h>
 
-#include "thirdparts/librdkafka/src/rdkafka.h"
-
 #include "qbus_config.h"
+#include "qbus_rdkafka.h"
 
 #include "util/logger.h"
 //----------------------------------------------------------------------
@@ -36,7 +35,8 @@ class QbusHelper {
                           bool isAppendThreadId = true);
 
   static long GetCurrentTimeMs();
-  static std::string FormatStringVector(const std::vector<std::string>& strings);
+  static std::string FormatStringVector(
+      const std::vector<std::string>& strings);
 
  private:
   static LUtil::Logger::LOG_LEVEL kLogLevel;

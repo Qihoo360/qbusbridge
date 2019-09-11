@@ -6,9 +6,8 @@
 #include <string>
 #include <vector>
 
-#include <thirdparts/librdkafka/src/rdkafka.h>
-
 #include "qbus_config.h"
+#include "qbus_rdkafka.h"
 //------------------------------------------------------------
 namespace qbus {
 
