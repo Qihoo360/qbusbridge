@@ -86,6 +86,20 @@ bool QbusHelper::GetQbusBrokerList(const QbusConfigLoader& config_loader,
   return !broker_list->empty();
 }
 
+bool QbusHelper::GetGroupId(const QbusConfigLoader& config_loader,
+                            std::string* group) {
+  if (!group) return false;
+
+  // Priority:
+  // 1. User provided *group
+  // 2. [global] configured group.id
+  if (group->empty()) {
+    *group = config_loader.GetGlobalConfig(RD_KAFKA_CONFIG_GROUP_ID, "");
+  }
+
+  return !group->empty();
+}
+
 bool QbusHelper::SetRdKafkaConfig(rd_kafka_conf_t* rd_kafka_conf,
                                   const char* item, const char* value) {
   bool rt = false;
@@ -192,6 +206,16 @@ long QbusHelper::GetCurrentTimeMs() {
   struct timeval now_time;
   gettimeofday(&now_time, NULL);
   return ((long)now_time.tv_sec) * 1000 + (long)now_time.tv_usec / 1000;
+}
+
+std::string QbusHelper::FormatStringVector(
+    const std::vector<std::string>& strings) {
+  std::ostringstream oss;
+  for (size_t i = 0; i < strings.size(); i++) {
+    if (i > 0) oss << ",";
+    oss << strings[i];
+  }
+  return oss.str();
 }
 
 }  // namespace qbus

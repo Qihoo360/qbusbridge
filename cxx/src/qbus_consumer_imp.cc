@@ -250,19 +250,15 @@ bool QbusConsumerImp::Subscribe(const std::string& group,
   group_ = group;
   topics_ = topics;
 
-  bool rt = false;
-
-  if (!group.empty()) {
-    rt = QbusHelper::SetRdKafkaConfig(rd_kafka_conf_, RD_KAFKA_CONFIG_GROUP_ID,
-                                      group.c_str());
-    if (!rt) {
-      ERROR(__FUNCTION__ << " | Failed to set group: " << group);
-    }
+  if (!QbusHelper::GetGroupId(config_loader_, &group_)) {
+    ERROR(__FUNCTION__ << " | empty group and group.id is also not configured");
+    return false;
   }
 
-  if (rt) {
-    rt = InitRdKafkaHandle();
-  }
+  INFO(__FUNCTION__ << " | group: " << group_
+                    << " | topic: " << QbusHelper::FormatStringVector(topics));
+
+  bool rt = InitRdKafkaHandle();
 
   if (rt && !topics.empty()) {
     rd_kafka_topic_partition_list_t* rd_kafka_topic_list =

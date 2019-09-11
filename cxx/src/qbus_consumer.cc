@@ -47,12 +47,6 @@ bool QbusConsumer::subscribe(const std::string& group,
                              const std::vector<std::string>& topics) {
   bool rt = false;
 
-  for (std::vector<std::string>::const_iterator i = topics.begin(),
-                                                e = topics.end();
-       i != e; ++i) {
-    INFO(__FUNCTION__ << " | group: " << group << " | topic: " << *i);
-  }
-
   if (NULL != qbus_consumer_imp_) {
     rt = qbus_consumer_imp_->Subscribe(group, topics);
   }
