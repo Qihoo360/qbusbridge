@@ -59,14 +59,12 @@ bool QbusProducerImp::Init(const std::string& broker_list,
                                   RD_KAFKA_SDK_CONFIG_LOG_LEVEL_DEFAULT),
       log_path);
 
-  INFO(__FUNCTION__ << " | Start init | qbus cluster: " << broker_list
-                    << " | topic: " << topic_name
-                    << " | config: " << config_path);
   broker_list_ = broker_list;
   is_init_ = QbusHelper::GetQbusBrokerList(config_loader_, &broker_list_) &&
              InitRdKafkaConfig() && InitRdKafkaHandle(topic_name);
-
-  INFO(__FUNCTION__ << " | broker list:" << broker_list_);
+  INFO(__FUNCTION__ << " | Start init | qbus cluster: " << broker_list_
+                    << " | topic: " << topic_name
+                    << " | config: " << config_path);
 
   if (is_init_) {
     std::string is_record_msg = config_loader_.GetSdkConfig(

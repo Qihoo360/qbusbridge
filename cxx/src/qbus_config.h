@@ -23,6 +23,8 @@ class QbusConfigLoader {
   void LoadRdkafkaConfig(rd_kafka_conf_t* rd_kafka_conf,
                          rd_kafka_topic_conf_t* rd_kafka_topic_conf);
   bool IsSetConfig(const std::string& config_name, bool is_topic_config) const;
+  std::string GetGlobalConfig(const std::string& config_name,
+                              const std::string& default_value) const;
   std::string GetSdkConfig(const std::string& config_name,
                            const std::string& default_value) const;
 

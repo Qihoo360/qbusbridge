@@ -81,18 +81,30 @@ void QbusConfigLoader::LoadRdkafkaConfig(
   }
 }
 
-std::string QbusConfigLoader::GetSdkConfig(
-    const std::string& config_name, const std::string& default_value) const {
+inline std::string GetConfigFromPropertyTree(const pt::ptree& tree,
+                                             const std::string& config_name,
+                                             const std::string& default_value) {
   std::string value(default_value);
 
-  boost::optional<std::string> found =
-      set_sdk_configs_.get_optional<std::string>(
-          pt::ptree::path_type(config_name, INI_CONFIG_KEY_VALUE_SPLIT));
+  boost::optional<std::string> found = tree.get_optional<std::string>(
+      pt::ptree::path_type(config_name, INI_CONFIG_KEY_VALUE_SPLIT));
   if (boost::none != found) {
     value = *found;
   }
 
   return value;
+}
+
+std::string QbusConfigLoader::GetGlobalConfig(
+    const std::string& config_name, const std::string& default_value) const {
+  return GetConfigFromPropertyTree(set_global_config_items_, config_name,
+                                   default_value);
+}
+
+std::string QbusConfigLoader::GetSdkConfig(
+    const std::string& config_name, const std::string& default_value) const {
+  return GetConfigFromPropertyTree(set_sdk_configs_, config_name,
+                                   default_value);
 }
 
 bool QbusConfigLoader::IsSetConfig(const std::string& config_name,

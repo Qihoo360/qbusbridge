@@ -68,15 +68,22 @@ void QbusHelper::InitLog(LUtil::Logger::LOG_LEVEL log_level,
 
 bool QbusHelper::GetQbusBrokerList(const QbusConfigLoader& config_loader,
                                    std::string* broker_list) {
-  bool rt = false;
+  if (!broker_list) return false;
 
-  if (NULL != broker_list && *broker_list == "") {
+  // Priority:
+  // 1. User provided non-empty *broker_list
+  // 2. [sdk] configured broker.list
+  // 3. [global] configured bootstrap.servers
+  if (broker_list->empty()) {
     *broker_list =
         config_loader.GetSdkConfig(RD_KAFKA_SDK_CONFIG_BROKER_LIST, "");
   }
+  if (broker_list->empty()) {
+    *broker_list =
+        config_loader.GetGlobalConfig(RD_KAFKA_CONFIG_BOOTSTRAP_SERVERS, "");
+  }
 
-  rt = ("" != *broker_list);
-  return rt;
+  return !broker_list->empty();
 }
 
 bool QbusHelper::SetRdKafkaConfig(rd_kafka_conf_t* rd_kafka_conf,

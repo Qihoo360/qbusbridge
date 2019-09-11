@@ -1,6 +1,7 @@
 #ifndef QBUS_CONSTANT_H
 #define QBUS_CONSTANT_H
 // global config items
+#define RD_KAFKA_CONFIG_BOOTSTRAP_SERVERS "bootstrap.servers"
 #define RD_KAFKA_CONFIG_INTERNAL_TERMINATION_SIGNAL \
   "internal.termination.signal"
 #define RD_KAFKA_CONFIG_QUEUE_BUFFERING_MAX_MS "queue.buffering.max.ms"
@@ -10,12 +11,12 @@
   "topic.metadata.refresh.interval.ms"
 #define RD_KAFKA_CONFIG_CLIENT_ID "client.id"
 #define RD_KAFKA_CONFIG_SOCKET_BLOKING_MAX_MX "socket.blocking.max.ms"
+#define RD_KAFKA_TOPIC_MESSAGE_RETRIES "message.send.max.retries"
 
 // topic config items
 #define RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD "offset.store.method"
 #define RD_KAFKA_TOPIC_CONFIG_AUTO_OFFSET_RESET "auto.offset.reset"
 #define RD_KAFKA_TOPIC_CONFIG_PRODUCE_OFFSET_REPORT "produce.offset.report"
-#define RD_KAFKA_TOPIC_MESSAGE_RETRIES "message.send.max.retries"
 
 // sdk config items
 #define RD_KAFKA_SDK_CONFIG_SYNC_SEND "send.sync"

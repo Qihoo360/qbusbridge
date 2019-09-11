@@ -29,7 +29,6 @@ QbusConsumerImp::QbusConsumerImp(const std::string& broker_list
     : rd_kafka_conf_(NULL),
       rd_kafka_topic_conf_(NULL),
       rd_kafka_handle_(NULL),
-      cluster_name_(""),
       broker_list_(broker_list),
       start_flag_(false),
       enable_rdkafka_logger_(false),
@@ -69,9 +68,8 @@ bool QbusConsumerImp::Init(const std::string& log_path,
   }
 
   bool rt = QbusHelper::GetQbusBrokerList(config_loader_, &broker_list_);
-  INFO(__FUNCTION__ << " | Start init | qbus cluster: " << cluster_name_
-                    << " | config: " << config_path
-                    << " | broker_list:" << broker_list_);
+  INFO(__FUNCTION__ << " | Start init | qbus cluster: " << broker_list_
+                    << " | config: " << config_path);
 
   return (rt && InitRdKafka());
 }
