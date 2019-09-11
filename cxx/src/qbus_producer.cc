@@ -319,9 +319,9 @@ bool QbusProducerImp::InitRdKafkaConfig() {
           rd_kafka_topic_conf_, &QbusProducerImp::PartitionHashFunc);
 
       if (!config_loader_.IsSetConfig(RD_KAFKA_TOPIC_MESSAGE_RETRIES, true)) {
-        QbusHelper::SetRdKafkaTopicConfig(rd_kafka_topic_conf_,
-                                          RD_KAFKA_TOPIC_MESSAGE_RETRIES,
-                                          RD_KAFKA_TOPIC_MESSAGE_RETRIES_VALUE);
+        QbusHelper::SetRdKafkaConfig(rd_kafka_conf_,
+                                     RD_KAFKA_TOPIC_MESSAGE_RETRIES,
+                                     RD_KAFKA_TOPIC_MESSAGE_RETRIES_VALUE);
       }
 
       if (!config_loader_.IsSetConfig(
@@ -377,7 +377,7 @@ bool QbusProducerImp::InitRdKafkaConfig() {
   return rt;
 }
 //-----------------------------------------------------------------------
-//modified by zk
+// modified by zk
 QbusProducer::QbusProducer() {
 #ifndef NOT_USE_CONSUMER_CALLBACK
   qbus_producer_imp_ = new QbusProducerImp();

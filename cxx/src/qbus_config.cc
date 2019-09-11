@@ -69,15 +69,15 @@ void QbusConfigLoader::LoadRdkafkaConfig(
   for (pt::ptree::iterator i = set_global_config_items_.begin(),
                            e = set_global_config_items_.end();
        i != e; ++i) {
-    QbusHelper::SetRdKafkaConfig(rd_kafka_conf, i->first.data(),
-                                 i->second.data().data());
+    QbusHelper::SetRdKafkaConfig(rd_kafka_conf, i->first.c_str(),
+                                 i->second.data().c_str());
   }
 
   for (pt::ptree::iterator i = set_topic_config_items_.begin(),
                            e = set_topic_config_items_.end();
        i != e; ++i) {
-    QbusHelper::SetRdKafkaConfig(rd_kafka_conf, i->first.data(),
-                                 i->second.data().data());
+    QbusHelper::SetRdKafkaTopicConfig(rd_kafka_topic_conf, i->first.c_str(),
+                                      i->second.data().c_str());
   }
 }
 
