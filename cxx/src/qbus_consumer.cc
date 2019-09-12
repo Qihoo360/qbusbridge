@@ -106,4 +106,14 @@ bool QbusConsumer::consume(QbusMsgContentInfo& msg_content_info) {
 }
 #endif
 
+bool QbusConsumer::pause(const std::vector<std::string>& topics) {
+  if (!qbus_consumer_imp_) return false;
+  return qbus_consumer_imp_->Pause(topics);
+}
+
+bool QbusConsumer::resume(const std::vector<std::string>& topics) {
+  if (!qbus_consumer_imp_) return false;
+  return qbus_consumer_imp_->Resume(topics);
+}
+
 }  // namespace qbus

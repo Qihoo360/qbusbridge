@@ -38,6 +38,9 @@ class QbusConsumer {
 #endif
   void commitOffset(const QbusMsgContentInfo& qbusMsgContentInfo);
 
+  bool pause(const std::vector<std::string>& topics);
+  bool resume(const std::vector<std::string>& topics);
+
  private:
   QbusConsumerImp* qbus_consumer_imp_;
 

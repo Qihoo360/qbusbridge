@@ -41,6 +41,7 @@ SET(PROJECT_ALL_FILES
     ./qbus_consumer_imp.cc
     ./qbus_consumer.cc
     ./qbus_producer.cc
+    ./qbus_topic_partition_set.cc
     )
 
 INCLUDE_DIRECTORIES(

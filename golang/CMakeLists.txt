@@ -41,6 +41,7 @@ SET(PROJECT_ALL_FILES
     ../cxx/src/qbus_consumer.cc
     ../cxx/src/qbus_producer.cc
 	../cxx/src/qbus_rdkafka.cc
+    ../cxx/src/qbus_topic_partition_set.cc
     ./qbus_wrap.cxx
     )
 

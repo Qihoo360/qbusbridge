@@ -49,6 +49,12 @@ void QbusConsumerCommitOffset(QbusConsumerHandle handle,
 
 void QbusConsumerStop(QbusConsumerHandle handle);
 
+QbusResult QbusConsumerPause(QbusConsumerHandle handle, const char* topics[],
+                             int32_t topics_count);
+
+QbusResult QbusConsumerResume(QbusConsumerHandle handle, const char* topics[],
+                              int32_t topics_count);
+
 #ifdef __cplusplus
 }  // extern "C" {
 #endif

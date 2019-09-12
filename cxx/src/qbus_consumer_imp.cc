@@ -39,12 +39,11 @@ QbusConsumerImp::QbusConsumerImp(const std::string& broker_list
       consumer_poll_time_(RD_KAFKA_CONSUMER_POLL_TIMEOUT_MS),
       manual_commit_time_(RD_KAFKA_SDK_MANUAL_COMMIT_TIME_DEFAULT_MS),
       manual_commit_offset_async_(1),
-      poll_thread_id_(0)
+      poll_thread_id_(0),
 #ifndef NOT_USE_CONSUMER_CALLBACK
-      ,
-      qbus_consumer_callback_(callback)
+      qbus_consumer_callback_(callback),
 #endif
-{
+      has_assigned_(false) {
 }
 
 QbusConsumerImp::~QbusConsumerImp() {
@@ -63,6 +62,13 @@ bool QbusConsumerImp::Init(const std::string& log_path,
   if (0 != status) {
     ERROR(__FUNCTION__
           << " | Failed to pthread_mutex_init for wait_commit_msgs_mutex_"
+          << " | error code:" << status);
+    return false;
+  }
+  status = pthread_mutex_init(&has_assigned_mutex_, NULL);
+  if (0 != status) {
+    ERROR(__FUNCTION__
+          << " | Failed to pthread_mutex_init for has_assigned_mutex_"
           << " | error code:" << status);
     return false;
   }
@@ -340,6 +346,7 @@ void QbusConsumerImp::Stop() {
 
   if (start_flag_) {
     start_flag_ = false;
+    topic_partition_set_.init(NULL);
 
 #ifndef NOT_USE_CONSUMER_CALLBACK
     pthread_join(poll_thread_id_, NULL);
@@ -472,6 +479,54 @@ void QbusConsumerImp::CommitOffset(
       }
     }
   }
+}
+
+bool QbusConsumerImp::ReadyToPauseResume() const {
+  if (!start_flag_) {
+    ERROR(__FUNCTION__ << " | consumer not started");
+    return false;
+  }
+
+  if (!has_assigned()) {
+    ERROR(__FUNCTION__ << " | pause/resume before partitions assigned");
+    return false;
+  }
+
+  return true;
+}
+
+bool QbusConsumerImp::Pause(const std::vector<std::string>& topics) {
+  INFO(__FUNCTION__ << " | topics: " << QbusHelper::FormatStringVector(topics));
+  if (!ReadyToPauseResume()) return false;
+
+  rd_kafka_topic_partition_list_t* lst =
+      topic_partition_set_.findTopics(topics);
+  rdkafka::PartitionListGuard lst_guard(lst);
+
+  rd_kafka_resp_err_t err = rd_kafka_pause_partitions(rd_kafka_handle_, lst);
+  if (err != RD_KAFKA_RESP_ERR_NO_ERROR) {
+    ERROR(__FUNCTION__ << " | Failed: " << rd_kafka_err2str(err));
+    return false;
+  }
+
+  return true;
+}
+
+bool QbusConsumerImp::Resume(const std::vector<std::string>& topics) {
+  INFO(__FUNCTION__ << " | topics: " << QbusHelper::FormatStringVector(topics));
+  if (!ReadyToPauseResume()) return false;
+
+  rd_kafka_topic_partition_list_t* lst =
+      topic_partition_set_.findTopics(topics);
+  rdkafka::PartitionListGuard lst_guard(lst);
+
+  rd_kafka_resp_err_t err = rd_kafka_resume_partitions(rd_kafka_handle_, lst);
+  if (err != RD_KAFKA_RESP_ERR_NO_ERROR) {
+    ERROR(__FUNCTION__ << " | Failed: " << rd_kafka_err2str(err));
+    return false;
+  }
+
+  return true;
 }
 
 std::string QbusConsumerImp::GetWaitOffsetKey(rd_kafka_message_t* msg) {
@@ -682,28 +737,49 @@ void QbusConsumerImp::ReceivedConsumeMsg(rd_kafka_message_t* rkmessage,
 void QbusConsumerImp::rdkafka_rebalance_cb(
     rd_kafka_t* rk, rd_kafka_resp_err_t err,
     rd_kafka_topic_partition_list_t* partitions, void* opaque) {
+  assert(opaque);
+  QbusConsumerImp* consumer_imp = static_cast<QbusConsumerImp*>(opaque);
+
   switch (err) {
     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS: {
       DEBUG(__FUNCTION__ << " | rebalance result OK: "
                          << QbusHelper::FormatTopicPartitionList(partitions));
       rd_kafka_assign(rk, partitions);
+      consumer_imp->topic_partition_set_.init(partitions);
+      consumer_imp->SetHasAssigned(true);
     } break;
     case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS: {
       DEBUG(__FUNCTION__ << " | rebalance result revoke | msg: "
                          << rd_kafka_err2str(err) << " | "
                          << QbusHelper::FormatTopicPartitionList(partitions));
-      QbusConsumerImp* consumer_imp = static_cast<QbusConsumerImp*>(opaque);
-      if (NULL != consumer_imp && !consumer_imp->is_auto_commit_offset_) {
+      if (!consumer_imp->is_auto_commit_offset_) {
         consumer_imp->ManualCommitWaitOffset(true);
       }
 
       rd_kafka_assign(rk, NULL);
+      consumer_imp->SetHasAssigned(false);
     } break;
     default:
       ERROR(__FUNCTION__ << " | Failed to rebalance | err msg: "
                          << rd_kafka_err2str(err));
       rd_kafka_assign(rk, NULL);
+      consumer_imp->SetHasAssigned(false);
       break;
   }
 }
+
+bool QbusConsumerImp::has_assigned() const {
+  bool result;
+  pthread_mutex_lock(&has_assigned_mutex_);
+  result = has_assigned_;
+  pthread_mutex_unlock(&has_assigned_mutex_);
+  return result;
+}
+
+void QbusConsumerImp::SetHasAssigned(bool new_value) {
+  pthread_mutex_lock(&has_assigned_mutex_);
+  has_assigned_ = new_value;
+  pthread_mutex_unlock(&has_assigned_mutex_);
+}
+
 }  // namespace qbus

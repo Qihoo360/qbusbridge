@@ -9,6 +9,7 @@ CXXSRCS  = $(CXXDIR)/src/qbus_helper.cc \
 			$(CXXDIR)/src/qbus_consumer.cc \
 			$(CXXDIR)/src/qbus_consumer_imp.cc \
 			$(CXXDIR)/src/qbus_producer.cc \
+			$(CXXDIR)/src/qbus_topic_partition_set.cc \
 			$(CXXDIR)/util/logger.cc
 TARGET     = qbus
 INTERFACE  = qbus.i

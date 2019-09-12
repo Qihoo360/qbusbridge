@@ -8,6 +8,7 @@
 
 #include "qbus_config.h"
 #include "qbus_rdkafka.h"
+#include "qbus_topic_partition_set.h"
 //------------------------------------------------------------
 namespace qbus {
 
@@ -36,6 +37,9 @@ class QbusConsumerImp {
 #endif
 
   void CommitOffset(const QbusMsgContentInfo& qbusMsgContentInfo);
+
+  bool Pause(const std::vector<std::string>& topics);
+  bool Resume(const std::vector<std::string>& topics);
 
  private:
   static void rdkafka_rebalance_cb(rd_kafka_t* rk, rd_kafka_resp_err_t err,
@@ -98,6 +102,20 @@ class QbusConsumerImp {
 
   typedef std::vector<rd_kafka_message_t*> RdkafkaMsgVectorType;
   std::map<std::string, RdkafkaMsgVectorType> wait_destroy_msgs_for_uncommit_;
+
+  // Map: topic name => partition id set
+  TopicPartitionSet topic_partition_set_;
+
+  // Since partitions to `pause()` must be previously assigned, we have to
+  // ensure that `pause()` is called after `rd_kafka_assign()`.
+  bool has_assigned_;
+  mutable pthread_mutex_t has_assigned_mutex_;
+
+  // Synchronized getter and setter
+  bool has_assigned() const;
+  void SetHasAssigned(bool new_value);
+
+  bool ReadyToPauseResume() const;
 };
 }  // namespace qbus
 

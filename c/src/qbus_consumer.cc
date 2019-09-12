@@ -1,5 +1,6 @@
 #include "qbus_consumer.h"
 
+#include <assert.h>
 #include "src/qbus_consumer.h"
 #include "src/qbus_consumer_callback.h"
 //-------------------------------------------------------
@@ -158,6 +159,21 @@ QbusResult QbusConsumerSubscribeOne(QbusConsumerHandle handle,
   return rt;
 }
 
+typedef std::vector<std::string> StringVector;
+
+inline StringVector toStringVector(const char* str_array[], int32_t n) {
+  assert(str_array);
+  StringVector result;
+
+  for (int32_t i = 0; i < n; i++) {
+    if (str_array[i]) {
+      result.push_back(str_array[i]);
+    }
+  }
+
+  return result;
+}
+
 QbusResult QbusConsumerSubscribe(QbusConsumerHandle handle, const char* group,
                                  const char* topics[], int32_t topics_count) {
   QbusResult rt = QBUS_RESULT_FAILED;
@@ -168,13 +184,7 @@ QbusResult QbusConsumerSubscribe(QbusConsumerHandle handle, const char* group,
     if (NULL != qbus_consumer_real_handle &&
         NULL != qbus_consumer_real_handle->qbus_consumer &&
         NULL != qbus_consumer_real_handle->qbus_consumer_callback) {
-      std::vector<std::string> topic_list;
-      for (int32_t i = 0; i < topics_count; ++i) {
-        if (NULL != topics[i]) {
-          topic_list.push_back(topics[i]);
-        }
-      }
-
+      StringVector topic_list = toStringVector(topics, topics_count);
       rt = qbus_consumer_real_handle->qbus_consumer->subscribe(
                NULL != group ? group : "", topic_list)
                ? QBUS_RESULT_OK
@@ -229,4 +239,29 @@ void QbusConsumerCommitOffset(QbusConsumerHandle handle,
       }
     }
   }
+}
+
+QbusResult QbusConsumerPause(QbusConsumerHandle handle, const char* topics[],
+                             int32_t topics_count) {
+  if (!handle || !topics || topics_count <= 0) return QBUS_RESULT_FAILED;
+
+  qbus::QbusConsumer* qbus_consumer =
+      static_cast<QbusConsumerRealHandle*>(handle)->qbus_consumer;
+  if (!qbus_consumer) return QBUS_RESULT_FAILED;
+
+  StringVector topic_list = toStringVector(topics, topics_count);
+  return qbus_consumer->pause(topic_list) ? QBUS_RESULT_OK : QBUS_RESULT_FAILED;
+}
+
+QbusResult QbusConsumerResume(QbusConsumerHandle handle, const char* topics[],
+                              int32_t topics_count) {
+  if (!handle || !topics || topics_count <= 0) return QBUS_RESULT_FAILED;
+
+  qbus::QbusConsumer* qbus_consumer =
+      static_cast<QbusConsumerRealHandle*>(handle)->qbus_consumer;
+  if (!qbus_consumer) return QBUS_RESULT_FAILED;
+
+  StringVector topic_list = toStringVector(topics, topics_count);
+  return qbus_consumer->resume(topic_list) ? QBUS_RESULT_OK
+                                           : QBUS_RESULT_FAILED;
 }
