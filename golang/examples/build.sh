@@ -7,7 +7,8 @@ export GOPATH="$PWD/../gopath"
 TARGETS=( \
 	consumer \
 	producer \
-	consumer_commit_in_goroutine
+	consumer_commit_in_goroutine \
+    consume_pause_resume
 )
 for TARGET in "${TARGETS[@]}"; do
 	COMMAND="go build $TARGET.go"

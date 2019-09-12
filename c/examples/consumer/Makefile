@@ -3,7 +3,8 @@ CC_FLAGS = -g -std=gnu99
 INC_DIR = ../../src
 LIB_DIR = ../../lib/debug
 
-TARGETS = qbus_consumer_example
+TARGETS = qbus_consumer_example \
+		  qbus_pause_resume_example
 
 all: $(TARGETS)
 	@echo "Build targets: "$(TARGETS)
