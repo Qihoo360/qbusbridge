@@ -473,10 +473,7 @@ void QbusConsumerImp::CommitOffset(
   if (is_user_manual_commit_offset_) {
     if (NULL != qbusMsgContentInfo.rd_message) {
       AddWaitCommitOffset(qbusMsgContentInfo.rd_message);
-
-      if (is_user_manual_commit_offset_) {
-        RemoveWaitDestroyMsgs(qbusMsgContentInfo.rd_message);
-      }
+      RemoveWaitDestroyMsgs(qbusMsgContentInfo.rd_message);
     }
   }
 }
