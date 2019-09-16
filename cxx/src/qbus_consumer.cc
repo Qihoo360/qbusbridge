@@ -1,13 +1,11 @@
 #include "qbus_consumer.h"
 
-#include "util/logger.h"
 #include "qbus_consumer_imp.h"
+#include "util/logger.h"
 //------------------------------------------------------------
 namespace qbus {
 
-QbusConsumer::QbusConsumer():
-  qbus_consumer_imp_(NULL) {
-}
+QbusConsumer::QbusConsumer() : qbus_consumer_imp_(NULL) {}
 
 QbusConsumer::~QbusConsumer() {
   if (NULL != qbus_consumer_imp_) {
@@ -17,22 +15,23 @@ QbusConsumer::~QbusConsumer() {
 }
 
 bool QbusConsumer::init(const std::string& broker_list,
-    const std::string& log_path,
-    const std::string& config_path
+                        const std::string& log_path,
+                        const std::string& config_path
 #ifndef NOT_USE_CONSUMER_CALLBACK
-    ,const QbusConsumerCallback& callback
+                        ,
+                        const QbusConsumerCallback& callback
 #endif
-    ) {
+) {
   bool rt = false;
 
   qbus_consumer_imp_ = new QbusConsumerImp(broker_list
 #ifndef NOT_USE_CONSUMER_CALLBACK
-      ,callback
+                                           ,
+                                           callback
 #endif
-      );
+  );
   if (NULL != qbus_consumer_imp_) {
-    rt = qbus_consumer_imp_->Init(log_path,
-        config_path);
+    rt = qbus_consumer_imp_->Init(log_path, config_path);
   }
 
   if (rt) {
@@ -45,16 +44,8 @@ bool QbusConsumer::init(const std::string& broker_list,
 }
 
 bool QbusConsumer::subscribe(const std::string& group,
-    const std::vector<std::string>& topics) {
+                             const std::vector<std::string>& topics) {
   bool rt = false;
-
-  for (std::vector<std::string>::const_iterator i = topics.begin(),
-      e = topics.end();
-      i != e;
-      ++i) {
-    INFO(__FUNCTION__ << " | group: " << group
-        << " | topic: " << *i);
-  }
 
   if (NULL != qbus_consumer_imp_) {
     rt = qbus_consumer_imp_->Subscribe(group, topics);
@@ -70,7 +61,7 @@ bool QbusConsumer::subscribe(const std::string& group,
 }
 
 bool QbusConsumer::subscribeOne(const std::string& group,
-    const std::string& topic) {
+                                const std::string& topic) {
   std::vector<std::string> topics;
   topics.push_back(topic);
   return subscribe(group, topics);
@@ -115,4 +106,14 @@ bool QbusConsumer::consume(QbusMsgContentInfo& msg_content_info) {
 }
 #endif
 
-}//namespace qbus 
+bool QbusConsumer::pause(const std::vector<std::string>& topics) {
+  if (!qbus_consumer_imp_) return false;
+  return qbus_consumer_imp_->Pause(topics);
+}
+
+bool QbusConsumer::resume(const std::vector<std::string>& topics) {
+  if (!qbus_consumer_imp_) return false;
+  return qbus_consumer_imp_->Resume(topics);
+}
+
+}  // namespace qbus

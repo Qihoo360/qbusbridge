@@ -3,7 +3,7 @@
 #include "src/qbus_producer.h"
 //-----------------------------------------
 struct QbusProducerRealHandle {
-    qbus::QbusProducer* qbus_producer;
+  qbus::QbusProducer* qbus_producer;
 };
 //-----------------------------------------
 QbusProducerHandle NewQbusProducer() {
@@ -21,7 +21,8 @@ QbusProducerHandle NewQbusProducer() {
 
 void DeleteQbusProducer(QbusProducerHandle producer_handle) {
   if (NULL != producer_handle) {
-    QbusProducerRealHandle* producer_real_handle = (QbusProducerRealHandle*)producer_handle;
+    QbusProducerRealHandle* producer_real_handle =
+        (QbusProducerRealHandle*)producer_handle;
     if (NULL != producer_real_handle) {
       delete producer_real_handle->qbus_producer;
       delete producer_real_handle;
@@ -30,24 +31,22 @@ void DeleteQbusProducer(QbusProducerHandle producer_handle) {
   }
 }
 
-QbusResult InitQbusProducer(QbusProducerHandle handle,
-            const char* cluster_name,
-            const char* log_path,
-            const char* config_path,
-            const char* topic_name) {
-  QbusResult rt = QBUS_RESULT_FAILED; 
+QbusResult InitQbusProducer(QbusProducerHandle handle, const char* cluster_name,
+                            const char* log_path, const char* config_path,
+                            const char* topic_name) {
+  QbusResult rt = QBUS_RESULT_FAILED;
 
-  if (NULL != handle &&
-      NULL != cluster_name &&
-      '\0' != cluster_name[0] &&
+  if (NULL != handle && NULL != cluster_name && '\0' != cluster_name[0] &&
       NULL != topic_name) {
-    QbusProducerRealHandle* producer_real_handle = (QbusProducerRealHandle*)handle;
+    QbusProducerRealHandle* producer_real_handle =
+        (QbusProducerRealHandle*)handle;
     if (NULL != producer_real_handle &&
         NULL != producer_real_handle->qbus_producer) {
-      rt = producer_real_handle->qbus_producer->init(cluster_name,
-          NULL != log_path ? log_path : "",
-          NULL != config_path ? config_path : "",
-          topic_name) ? QBUS_RESULT_OK : QBUS_RESULT_FAILED;
+      rt = producer_real_handle->qbus_producer->init(
+               cluster_name, NULL != log_path ? log_path : "",
+               NULL != config_path ? config_path : "", topic_name)
+               ? QBUS_RESULT_OK
+               : QBUS_RESULT_FAILED;
     }
   }
 
@@ -56,7 +55,8 @@ QbusResult InitQbusProducer(QbusProducerHandle handle,
 
 void UninitQbusProducer(QbusProducerHandle handle) {
   if (NULL != handle) {
-    QbusProducerRealHandle* producer_real_handle = (QbusProducerRealHandle*)handle;
+    QbusProducerRealHandle* producer_real_handle =
+        (QbusProducerRealHandle*)handle;
     if (NULL != producer_real_handle &&
         NULL != producer_real_handle->qbus_producer) {
       producer_real_handle->qbus_producer->uninit();
@@ -64,21 +64,19 @@ void UninitQbusProducer(QbusProducerHandle handle) {
   }
 }
 
-QbusResult QbusProducerProduce(QbusProducerHandle handle,
-            const char* data,
-            int64_t data_len,
-            const char* key) {
-  QbusResult rt = QBUS_RESULT_FAILED; 
+QbusResult QbusProducerProduce(QbusProducerHandle handle, const char* data,
+                               int64_t data_len, const char* key) {
+  QbusResult rt = QBUS_RESULT_FAILED;
 
-  if (NULL != handle &&
-      NULL != data &&
-      data_len > 0) {
-    QbusProducerRealHandle* producer_real_handle = (QbusProducerRealHandle*)handle;
+  if (NULL != handle && NULL != data && data_len > 0) {
+    QbusProducerRealHandle* producer_real_handle =
+        (QbusProducerRealHandle*)handle;
     if (NULL != producer_real_handle &&
         NULL != producer_real_handle->qbus_producer) {
-      rt = producer_real_handle->qbus_producer->produce(data,
-          data_len,
-          NULL != key ? key : "") ? QBUS_RESULT_OK : QBUS_RESULT_FAILED;
+      rt = producer_real_handle->qbus_producer->produce(data, data_len,
+                                                        NULL != key ? key : "")
+               ? QBUS_RESULT_OK
+               : QBUS_RESULT_FAILED;
     }
   }
 

@@ -19,22 +19,63 @@
 #### git clone:
 git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 
-##### *cxx/c*
-Navigate to the cxx/c installation directory，and run `build.sh -release`, you will get a new file named libqbus.so in the "./lib/release" directory.
+### 1. Compile rdkafka
 
-#### *go*
-First run kafkabridge/cxx/build_librdkafka.sh. Navigate to the Go installation directory，and run `build.sh`, you will get the new files qbus.go and libQBus_go.so in the directory "gopath/src/qbus".
+Navigate to the `cxx` directory and run `./build_librdkafka.sh`, you'll get `librdkafka.a` in `thirdparts/librdkafka/src` subdirectory.
 
-#### *python*
-Navigate to the Python installation directory, run `build.sh`, that will generate two files, qbus.py and _qbus.so in the current directory.
+### 2. Build SDK
 
-The complie script support some options, you can check them by append the `-h` option. Use the `-s` option passing the file path of Python's header files, '/usr/local/python2.7/include/python2.7' is the default value of `-s`.
+#### C/C++
+
+C SDK depends on C++ SDK, so you should build C++ SDK first.
+
+Navigate to the `cxx` directory and run `./build.sh <BUILD_TYPE>` (`<BUILD_TYPE` is `debug` or `release`)，you'll get `libQBus.so` in `cxx/lib/<BUILD_TYPE>` directory.
+
+Then navigate to the `c` directory and run `./build.sh <BUILD_TYPE>`, you'll get `libQBus_C.so` in `c/lib/<BUILD_TYPE>` directory.
+
+#### Go
+Navigate to the `golang` directory and run `build.sh`, you'll get `qbus.py` and `libQBus_go.so` in `gopath/src/qbus` subdirectory.
+
+#### Python
+Navigate to the `python` directory and run `./build.sh`, you'll get `qbus.py` and `_qbus.so` in the current directory.
+
+The `build.sh` provides options to specify Python header directory (where `Python.h` lies) and Python version. Run `./build.sh -h` to see usage:
+
+- `-s` specifies Python header directory, default `/usr/local/python2.7/include/python2.7`;
+- `-v` specifies Python version, default `python2.7`.
 
 
-#### *php*
-Naviate to the PHP installation directory, run `build.sh`, that will generate the new files qbus.so and qbus.php in the current directory.
+#### PHP
+Navigate to the `php` directory and run `build.sh`, you'll get `qbus.so` and `qbus.php` in the current directory.
 
-The complie script support some options, you can check them by append the `-h` option. Use the `-s` option passing the file path of PHP's head files, the default value of `-s` is '/usr/local/php -v php'.
+The `build.sh` provides options to specify PHP header directory and PHP version. Run `./build.sh -h` to see usage:
+
+- `-s` specifies PHP header directory, default `/usr/local/php/include/php`;
+- `-v` specifies PHP version (`php` or `php7`), default `php`, which means PHP 5.
+
+### 3. Build examples
+
+#### C/C++
+
+Navigate to `examples` subdirectory and run `make` to generate executable files, run `make clean` to delete them.
+
+If you want to build your own programs, see how `Makefile` does.
+
+#### Go
+
+Navigate to `examples` subdirectory and run `./build.sh` to generate executable files, run `./clean.sh` to delete them.
+
+Add path of `libQBus_go.so` to env `LD_LIBRARY_PATH`.
+
+If you want to build your own programs, add generated `gopath` directory to env `GOPATH`, or move `gopath/src/qbus` directory to `$GOPATH/src`.
+
+#### Python
+
+Copy generated `qbus.py` and `_qbus.so` to the path of the Python scripts to run.
+
+#### PHP
+
+Edit `php.ini` and add `extension=<module-path>`, `<module-path>` is the path of `qbus.so`.
 
 
 ## Usage
@@ -44,15 +85,20 @@ The complie script support some options, you can check them by append the `-h` o
 * Writing data only need to invoke the `produce` interface, and in the asynchronous mode, by checking the return value, you could know whether the sending queue is full or not.
 * In the synchronous writing mode, `produce` interface will return value directively that indicate whether the current message has been written succuessfully. But that is at the expense of some extra performance loss and CPU usage. So asynchronous mode is recommended.
 * The following is a C++ example demonstrating how to invoke the `produce` interface:
-~~~
-bool QbusProducer::init(const string& broker_list, const string& log_path, const string& config_path, const string& topic)
-bool QbusProducer::produce(const char* data, size_t data_len, const std::string& key)
-void QbusProducer::uninit()
+~~~c++
+bool QbusProducer::init(const string& broker_list,
+                        const string& log_path,
+                        const string& config_path,
+                        const string& topic_name);
+bool QbusProducer::produce(const char* data,
+                           size_t data_len,
+                           const std::string& key);
+void QbusProducer::uninit();
 ~~~
 
 * C++ SDK use example:
 
-~~~
+~~~c++
 #include <string>
 #include <iostream>
 #include "qbus_producer.h"
@@ -83,16 +129,23 @@ int main(int argc, const char* argv[]) {
 * Consuming data only need to invoke the `subscribeOne` to subscribe the 'topic' (also support subscribing multiple topics). The current process is not blocked, every message will send back to the user through the callback.
 * The SDK also supports submit offset manually, users can submit the offset in the code of the message body that returned by through callbacks.
 * The following is an example of C++, that demonstrate the usage of the consuming interface:
-~~~
-bool QbusConsumer::init(string broker_list, string log_path, string config_path, QbusConsumerCallback& callback)
-bool QbusConsumer::subscribeOne(string group, string topic)
-bool QbusConsumer::start()
-void QbusConsumer::stop()
+~~~c++
+bool QbusConsumer::init(const std::string& broker_list,
+                        const std::string& log_path,
+                        const std::string& config_path,
+                        const QbusConsumerCallback& callback);
+bool QbusConsumer::subscribeOne(const std::string& group, const std::string& topic);
+bool QbusConsumer::subscribe(const std::string& group,
+                             const std::vector<std::string>& topics);
+bool QbusConsumer::start();
+void QbusConsumer::stop();
+bool QbusConsumer::pause(const std::vector<std::string>& topics);
+bool QbusConsumer::resume(const std::vector<std::string>& topics);
 ~~~
 
 * C++ SDK use example: 
 
-~~~
+~~~c++
 #include <iostream>
 #include "qbus_consumer.h"
 
@@ -133,5 +186,10 @@ int main(int argc, char* argv[]) {
 
 ~~~
 
+You can use `pause()` and `resume()` methods to pause or resume consuming some topics, see [qbus_pause_resume_example.cc](./cxx/examples/consumer/qbus_pause_resume_example.cc)
+
+See examples in [C examples](c/examples/)，[C++ examples](cxx/examples/)，[Go examples](golang/examples/)，[Python examples](python/examples/)，[PHP examples](php/examples/) for more usage.
+
 ## CONFIGURATION
+
 [kafka configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION)

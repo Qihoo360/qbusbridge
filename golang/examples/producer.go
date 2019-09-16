@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Printf("Usage: ./produer topic_name cluster_name\n")
+		fmt.Printf("Usage: ./producer topic_name cluster_name\n")
 		return
 	}
 

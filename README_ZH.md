@@ -16,22 +16,64 @@
 ***依赖liblog4cplus-1.2.1, boost, swig-3.0.12, cmake***
 
 #### git clone
+
 git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 
-#### *cxx/c*
- 进入cxx/c目录，执行build.sh -release，在./lib/release下会产生libqbus.so。
+### 1. 编译rdkafka
 
-#### *go*
-依赖librdkafka 先执行：kafkabridge/cxx/build_librdkafka.sh，
-再进入go目录，执行build.sh，在gopath/src/qbus 目录下生成qbus.go和libQBus_go.so。
+进入`cxx`目录，执行`./build_librdkafka.sh`，在`thirdparts/librdkafka/src`子目录下会生成`librdkafka.a`。
 
-#### *python*
-进入python目录，执行build.sh，在当前目录生成qbus.py和_qbus.so。
-编译脚本提供了选项，可以通过-h查看。可以通过-s选项传递python相关头文件路径。默认-s /usr/local/python2.7/include/python2.7
+### 2. 编译SDK
 
-#### *php*
-进入php目录, 执行build.sh，当前目录生成扩展qbus.so和qbus.php。
-编译脚本提供了选项，可以通过-h查看。可以通过s选项传递php相关头文件路径，可以通过-v传递php的版本。默认选项-s /usr/local/php -v php。
+#### C/C++
+
+C的SDK依赖于C++的SDK，因此得先编译C++ SDK。
+
+进入`cxx`目录，执行`./build.sh <BUILD_TYPE>`（其中`<BUILD_TYPE>`是`debug`或者`release`），在`cxx/lib/<BUILD_TYPE>`目录下会生成`libQBus.so`。
+
+然后进入`c`目录，执行`./build.sh <BUILD_TYPE>`，在`c/lib/<BUILD_TYPE>`目录下会生成`libQBus_C.so`。
+
+#### Go
+进入`golang`目录，执行`./build.sh`，在`gopath/src/qbus`子目录下会生成`qbus.go`和`libQBus_go.so`。
+
+#### Python
+进入`python`目录，执行`./build.sh`，在当前目录会生成`qbus.py`和`_qbus.so`。
+
+编译脚本提供了选项用来指定Python头文件目录（`Python.h`所在目录）和Python版本，可以通过`./build.sh -h`查看使用方法：
+
+- `-s`选项指定Python头文件目录，默认`/usr/local/python2.7/include/python2.7`；
+- `-v`选项指定Python版本，默认`python2.7`。
+
+#### PHP
+进入`php`目录，执行`./build.sh`，在当前目录会生成`qbus.so`和`qbus.php`。
+编译脚本提供了选项用来指定PHP头文件目录和PHP版本，可以通过`./build.sh -h`查看使用方法：
+
+- `-s`选项指定PHP头文件目录，默认`/usr/local/php/include/php`；
+- `-v`选项指定PHP版本（`php`或`php7`），默认`php`，即PHP 5。
+
+### 3. 编译示例程序
+
+#### C/C++
+
+进入`examples`子目录，运行`make`生成可执行文件，运行`make clean`删除它们。
+
+如果要运行自己的程序，可以参考`Makefile`文件。
+
+#### Go
+
+进入`examples`子目录，运行`./build.sh`生成可执行文件，运行`./clean.sh`删除它们。
+
+运行可执行文件时把`libQBus_go.so`路径加入`LD_LIBRARY_PATH`环境变量。
+
+如果要运行自己的程序，将生成的`gopath`目录加入`GOPATH`环境变量，或者将`gopath/src/qbus`目录移动到`$GOPATH/src`下。
+
+#### Python
+
+将生成的`qbus.py`和`_qbus.so`拷贝至要运行的Python脚本同一路径即可。
+
+#### PHP
+
+编辑`php.ini`文件，添加`extension=<module-path>`，`<module-path>`为`qbus.so`路径。
 
 
 ## 使用
@@ -40,14 +82,19 @@ git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 * 每次写入数据只需要调用*produce*接口，在异步发送的场景下，通过返回值可以判断发送队列是否填满，发送队列可通过配置文件调整;
 * 在同步发送的场景中，*produce*接口返回当前消息是否写入成功，但是写入性能会有所下降，CPU使用率会有所上升,推荐还是使用异步写入方式;。
 * 下面是生产接口，以c++为例：
-~~~
-bool QbusProducer::init(const string& broker_list, const string& log_path, const string& config_path, const string& topic)
-bool QbusProducer::produce(const char* data, size_t data_len, const std::string& key)
-void QbusProducer::uninit()
+~~~c++
+bool QbusProducer::init(const string& broker_list,
+                        const string& log_path,
+                        const string& config_path,
+                        const string& topic_name);
+bool QbusProducer::produce(const char* data,
+                           size_t data_len,
+                           const std::string& key);
+void QbusProducer::uninit();
 ~~~
 * c++ sdk的使用范例：
 
-~~~
+~~~c++
 #include <string>
 #include <iostream>
 #include "qbus_producer.h"
@@ -79,16 +126,23 @@ int main(int argc, const char* argv[]) {
 * 消费只需调用subscribeOne订阅topic（也支持同时订阅多个topic），然后执行start就开始消费，当前进程非阻塞，每条消息通过callback接口回调给使用者;
 * sdk还支持用户手动提交offset方式，用户可以通过callback中返回的消息体，在代码其他逻辑中进行提交。
 * 下面是消费接口，以c++为例：
-~~~
-bool QbusConsumer::init(string broker_list, string log_path, string config_path, QbusConsumerCallback& callback)
-bool QbusConsumer::subscribeOne(string group, string topic)
-bool QbusConsumer::start()
-void QbusConsumer::stop()
+~~~c++
+bool QbusConsumer::init(const std::string& broker_list,
+                        const std::string& log_path,
+                        const std::string& config_path,
+                        const QbusConsumerCallback& callback);
+bool QbusConsumer::subscribeOne(const std::string& group, const std::string& topic);
+bool QbusConsumer::subscribe(const std::string& group,
+                             const std::vector<std::string>& topics);
+bool QbusConsumer::start();
+void QbusConsumer::stop();
+bool QbusConsumer::pause(const std::vector<std::string>& topics);
+bool QbusConsumer::resume(const std::vector<std::string>& topics);
 ~~~
 
 * c++ sdk的使用范例：
 
-~~~
+~~~c++
 #include <iostream>
 #include "qbus_consumer.h"
 
@@ -129,8 +183,12 @@ int main(int argc, char* argv[]) {
 
 ~~~
 
+可以用`pause()`和`resume()`方法来暂停或恢复某些主题的消费，具体示例见[qbus_pause_resume_example.cc](cxx/examples/consumer/qbus_pause_resume_example.cc)。
+
+更多API使用方法参考[C examples](c/examples/)，[C++ examples](cxx/examples/)，[Go examples](golang/examples/)，[Python examples](python/examples/)，[PHP examples](php/examples/)目录下的示例代码。
 
 ## 配置
+
 [kafkabridge具体配置](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION_ZH)
 
 ## QQ 群 : 876834263

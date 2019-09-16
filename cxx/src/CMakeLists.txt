@@ -37,9 +37,11 @@ SET(PROJECT_ALL_FILES
     ./qbus_helper.cc
     ./qbus_config.cc
     ./qbus_record_msg.cc
+    ./qbus_rdkafka.cc
     ./qbus_consumer_imp.cc
     ./qbus_consumer.cc
     ./qbus_producer.cc
+    ./qbus_topic_partition_set.cc
     )
 
 INCLUDE_DIRECTORIES(

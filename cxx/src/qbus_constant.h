@@ -1,32 +1,38 @@
 #ifndef QBUS_CONSTANT_H
 #define QBUS_CONSTANT_H
-//global config items
-#define RD_KAFKA_CONFIG_INTERNAL_TERMINATION_SIGNAL "internal.termination.signal"
+// global config items
+#define RD_KAFKA_CONFIG_BOOTSTRAP_SERVERS "bootstrap.servers"
+#define RD_KAFKA_CONFIG_INTERNAL_TERMINATION_SIGNAL \
+  "internal.termination.signal"
 #define RD_KAFKA_CONFIG_QUEUE_BUFFERING_MAX_MS "queue.buffering.max.ms"
 #define RD_KAFKA_CONFIG_GROUP_ID "group.id"
 #define RD_KAFKA_CONFIG_ENABLE_AUTO_COMMIT "enable.auto.commit"
-#define RD_KAFKA_CONFIG_TOPIC_METADATA_REFRESH_INTERVAL "topic.metadata.refresh.interval.ms"
+#define RD_KAFKA_CONFIG_TOPIC_METADATA_REFRESH_INTERVAL \
+  "topic.metadata.refresh.interval.ms"
 #define RD_KAFKA_CONFIG_CLIENT_ID "client.id"
 #define RD_KAFKA_CONFIG_SOCKET_BLOKING_MAX_MX "socket.blocking.max.ms"
+#define RD_KAFKA_TOPIC_MESSAGE_RETRIES "message.send.max.retries"
 
-//topic config items
+// topic config items
 #define RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD "offset.store.method"
 #define RD_KAFKA_TOPIC_CONFIG_AUTO_OFFSET_RESET "auto.offset.reset"
 #define RD_KAFKA_TOPIC_CONFIG_PRODUCE_OFFSET_REPORT "produce.offset.report"
-#define RD_KAFKA_TOPIC_MESSAGE_RETRIES "message.send.max.retries"
 
-//sdk config items
+// sdk config items
 #define RD_KAFKA_SDK_CONFIG_SYNC_SEND "send.sync"
 #define RD_KAFKA_SDK_CONFIG_LOG_LEVEL "log.level"
 #define RD_KAFKA_SDK_CONFIG_ZK_LIST "zk.list"
 #define RD_KAFKA_SDK_CONFIG_ENABLE_RD_KAFKA_LOG "enable.rdkafka.log"
 #define RD_KAFKA_SDK_CONFIG_BROKER_LIST "broker.list"
 //#define RD_KAFKA_SDK_CONFIG_NOT_CHECK_ACCESS_LIMITS "access.limits"
-#define RD_KAFKA_SDK_CONFIG_MANUAL_COMMIT_OFFSET_ASYNC "manual.commit.offset.async"
+#define RD_KAFKA_SDK_CONFIG_MANUAL_COMMIT_OFFSET_ASYNC \
+  "manual.commit.offset.async"
 #define RD_KAFKA_SDK_CONFIG_RECORD_MSG "enable.record.msg"
 #define RD_KAFKA_SDK_CONFIG_ZK_CONNECT_TIMEOUT "zk.connect.timeout"
-#define RD_KAFKA_SDK_CONFIG_PRODUCER_ENABLE_MINI_LATENCY "minimize.produce.latency"
-#define RD_KAFKA_SDK_CONFIG_PRODUCER_SPEED_UP_TERMINATE "producer.speedup.terminate"
+#define RD_KAFKA_SDK_CONFIG_PRODUCER_ENABLE_MINI_LATENCY \
+  "minimize.produce.latency"
+#define RD_KAFKA_SDK_CONFIG_PRODUCER_SPEED_UP_TERMINATE \
+  "producer.speedup.terminate"
 #define RD_KAFKA_SDK_CONFIG_PRODUCER_HA "producer.send.ha"
 #define RD_KAFKA_SDK_LOCAL_SQLITE_SAVE_PATH "producer.send.local.file.path"
 #define RD_KAFKA_SDK_PRODUCER_HA_FASET_EXIT "producer.send.ha.fast.exit"
@@ -39,10 +45,10 @@
 //#define RD_KAFKA_CURL_CONNECT_RETRY_TIME "curl.connect.retry"
 //#define RD_KAFKA_CURL_TIMEOUT_MS "curl.timeout"
 
-//config values
+// config values
 #define RD_KAFKA_CURL_TIMEOUT_DEFAULT "0"
 #define RD_KAFKA_CURL_CONNECT_RETRY_TIME_DEFAULT "1"
-#define RD_KAFKA_CURL_CONNECT_TIMEOUT_DEFAULT "3000" //MS
+#define RD_KAFKA_CURL_CONNECT_TIMEOUT_DEFAULT "3000"  // MS
 #define RD_KAFKAF_SDK_CONFIG_DISABLE_ZK_DEFAULT "false"
 #define RD_KAFKA_SDK_CONFIG_ZK_LIST_DEFAULT ""
 //#define RD_KAFKA_SDK_CONFIG_NOT_CHECK_ACCESS_LIMITS_DEFAULT "true"
@@ -79,4 +85,4 @@
 #define RD_KAFKA_SDK_MANUAL_COMMIT_TIME_DEFAULT_MS_STR "200"
 #define RD_KAFKA_SDK_USER_MANUAL_COMMIT_OFFSET_DEFAULT "false"
 #define RD_KAFKA_SDK_FORCE_DESTROY_DEFAULT "false"
-#endif //ifndef QBUS_CONSTANT_H
+#endif  // ifndef QBUS_CONSTANT_H

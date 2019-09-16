@@ -4,10 +4,11 @@ if [ $# != 1 ] ; then
   exit 1
 fi
 
-./build_librdkafka.sh
+if [ ! -f ./thirdparts/librdkafka/src/librdkafka.a ]; then
+	./build_librdkafka.sh
+fi
 
-rm -rf build
-mkdir build
+mkdir -p build
 
 cd build
 
