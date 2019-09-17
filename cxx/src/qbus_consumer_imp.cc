@@ -38,7 +38,6 @@ QbusConsumerImp::QbusConsumerImp(const std::string& broker_list
       last_commit_ms_(0),
       consumer_poll_time_(RD_KAFKA_CONSUMER_POLL_TIMEOUT_MS),
       manual_commit_time_(RD_KAFKA_SDK_MANUAL_COMMIT_TIME_DEFAULT_MS),
-      manual_commit_offset_async_(1),
       poll_thread_id_(0),
 #ifndef NOT_USE_CONSUMER_CALLBACK
       qbus_consumer_callback_(callback),
@@ -101,19 +100,6 @@ bool QbusConsumerImp::InitRdKafkaConfig() {
 
       // set client.id
       QbusHelper::SetClientId(rd_kafka_conf_);
-
-      // set whether manual and async commit offset
-      std::string manual_commit_offset_async = config_loader_.GetSdkConfig(
-          RD_KAFKA_SDK_CONFIG_MANUAL_COMMIT_OFFSET_ASYNC,
-          RD_KAFKA_SDK_CONFIG_MANUAL_COMMIT_OFFSET_ASYNC_DEFAULT);
-      if (0 ==
-          strncasecmp(manual_commit_offset_async.c_str(),
-                      RD_KAFKA_SDK_CONFIG_MANUAL_COMMIT_OFFSET_ASYNC_DEFAULT,
-                      manual_commit_offset_async.length())) {
-        manual_commit_offset_async_ = 1;
-      } else {
-        manual_commit_offset_async_ = 0;
-      }
 
       // set stored offset into zk or broker
       if (config_loader_.IsSetConfig(RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD,
@@ -190,6 +176,17 @@ bool QbusConsumerImp::InitRdKafkaConfig() {
                            << RD_KAFKA_CONFIG_ENABLE_AUTO_COMMIT);
       }
 
+      // set whether to force destroy in Stop() if user manual commit offset
+      std::string force_destroy = config_loader_.GetSdkConfig(
+          RD_KAFKA_SDK_FORCE_DESTROY, RD_KAFKA_SDK_FORCE_DESTROY_DEFAULT);
+      if (0 == strncasecmp(force_destroy.c_str(),
+                           RD_KAFKA_SDK_FORCE_DESTROY_DEFAULT,
+                           force_destroy.length())) {
+        is_force_destroy_ = false;
+      } else {
+        is_force_destroy_ = true;
+      }
+
       // get whether user manual commit offset and if use use manual commit
       // offset, then set is_auto_commit_offset to false
       std::string user_manual_commit_offset = config_loader_.GetSdkConfig(
@@ -253,14 +250,22 @@ bool QbusConsumerImp::InitRdKafkaHandle() {
 
 bool QbusConsumerImp::Subscribe(const std::string& group,
                                 const std::vector<std::string>& topics) {
-  group_ = group;
-  topics_ = topics;
-
-  if (!QbusHelper::GetGroupId(config_loader_, &group_)) {
-    ERROR(__FUNCTION__ << " | empty group and group.id is also not configured");
-    return false;
+  std::string old_group = QbusHelper::GetGroupId(config_loader_);
+  if (!group.empty()) {
+    // User provided group has higher priority than configured group.id
+    INFO(__FUNCTION__ << " | Update group.id from \"" << old_group << "\" to \""
+                      << group << "\"");
+    if (!QbusHelper::SetRdKafkaConfig(rd_kafka_conf_, RD_KAFKA_CONFIG_GROUP_ID,
+                                      group.c_str())) {
+      ERROR(__FUNCTION__ << " | SetRdKafkaConfig failed");
+      return false;
+    }
+    group_ = group;
+  } else {
+    group_ = old_group;
   }
 
+  topics_ = topics;
   INFO(__FUNCTION__ << " | group: " << group_
                     << " | topic: " << QbusHelper::FormatStringVector(topics));
 

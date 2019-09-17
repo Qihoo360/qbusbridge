@@ -84,8 +84,6 @@ class QbusConsumerImp {
   long long consumer_poll_time_;
   long long manual_commit_time_;
 
-  int manual_commit_offset_async_;
-
   pthread_t poll_thread_id_;
 
   QbusConfigLoader config_loader_;

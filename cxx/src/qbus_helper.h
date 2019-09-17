@@ -21,8 +21,7 @@ class QbusHelper {
                       const std::string& log_path);
   static bool GetQbusBrokerList(const QbusConfigLoader& config_loader,
                                 std::string* broker_list);
-  static bool GetGroupId(const QbusConfigLoader& config_loader,
-                         std::string* group);
+  static std::string GetGroupId(const QbusConfigLoader& config_loader);
   static bool SetRdKafkaConfig(rd_kafka_conf_t* rd_kafka_conf, const char* item,
                                const char* value);
   static bool SetRdKafkaTopicConfig(rd_kafka_topic_conf_t* rd_kafka_topic_conf,

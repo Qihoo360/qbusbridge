@@ -86,18 +86,8 @@ bool QbusHelper::GetQbusBrokerList(const QbusConfigLoader& config_loader,
   return !broker_list->empty();
 }
 
-bool QbusHelper::GetGroupId(const QbusConfigLoader& config_loader,
-                            std::string* group) {
-  if (!group) return false;
-
-  // Priority:
-  // 1. User provided *group
-  // 2. [global] configured group.id
-  if (group->empty()) {
-    *group = config_loader.GetGlobalConfig(RD_KAFKA_CONFIG_GROUP_ID, "");
-  }
-
-  return !group->empty();
+std::string QbusHelper::GetGroupId(const QbusConfigLoader& config_loader) {
+  return config_loader.GetGlobalConfig(RD_KAFKA_CONFIG_GROUP_ID, "");
 }
 
 bool QbusHelper::SetRdKafkaConfig(rd_kafka_conf_t* rd_kafka_conf,
