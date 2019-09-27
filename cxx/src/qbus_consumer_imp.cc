@@ -534,7 +534,7 @@ bool QbusConsumerImp::Resume(const std::vector<std::string>& topics) {
 std::string QbusConsumerImp::GetWaitOffsetKey(rd_kafka_message_t* msg) {
   std::stringstream ss;
   const char* name = rd_kafka_topic_name(msg->rkt);
-  ss << (NULL != name ? name : "") << msg->partition;
+  ss << (NULL != name ? name : "") << ":" << msg->partition;
   std::string key = ss.str();
   ss.str("");
   return key;
