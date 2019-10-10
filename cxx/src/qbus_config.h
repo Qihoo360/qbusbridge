@@ -19,7 +19,7 @@ class QbusConfigLoader {
 
   QbusConfigLoader() {}
 
-  void LoadConfig(const std::string& path);
+  bool LoadConfig(const std::string& path, std::string& errstr);
   void LoadRdkafkaConfig(rd_kafka_conf_t* rd_kafka_conf,
                          rd_kafka_topic_conf_t* rd_kafka_topic_conf);
   bool IsSetConfig(const std::string& config_name, bool is_topic_config) const;

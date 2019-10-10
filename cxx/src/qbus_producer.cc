@@ -43,12 +43,18 @@ bool QbusProducerImp::Init(const std::string& broker_list,
                            const std::string& log_path,
                            const std::string& topic_name,
                            const std::string& config_path) {
-  config_loader_.LoadConfig(config_path);
+  std::string errstr;
+  bool load_config_ok = config_loader_.LoadConfig(config_path, errstr);
 
   QbusHelper::InitLog(
       config_loader_.GetSdkConfig(RD_KAFKA_SDK_CONFIG_LOG_LEVEL,
                                   RD_KAFKA_SDK_CONFIG_LOG_LEVEL_DEFAULT),
       log_path);
+
+  if (!load_config_ok) {
+    ERROR(__FUNCTION__ << " | LoadConfig failed: " << errstr);
+    return false;
+  }
 
   broker_list_ = broker_list;
   is_init_ = QbusHelper::GetQbusBrokerList(config_loader_, &broker_list_) &&

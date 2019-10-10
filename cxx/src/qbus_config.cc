@@ -20,16 +20,15 @@ static const char* TOPIC_CONFIG = "topic";
 static const char* SDK_CONFIG = "sdk";
 static const char INI_CONFIG_KEY_VALUE_SPLIT = '|';
 
-void QbusConfigLoader::LoadConfig(const std::string& path) {
-  std::ifstream stream(path.c_str());
-  if (!stream) {
-    WARNING(__FUNCTION__ << " | Can't open config file : " << path
-                         << " | use default config");
-    return;
+bool QbusConfigLoader::LoadConfig(const std::string& path,
+                                  std::string& errstr) {
+  try {
+    pt::ini_parser::read_ini(path, root_tree_);
+  } catch (const boost::property_tree::ini_parser::ini_parser_error& e) {
+    errstr = e.what();
+    return false;
   }
-  stream.close();
 
-  pt::ini_parser::read_ini(path, root_tree_);
   boost::optional<pt::ptree&> set_global_config_items =
       root_tree_.get_child_optional(GLOBAL_CONFIG);
   if (set_global_config_items) {
@@ -45,6 +44,8 @@ void QbusConfigLoader::LoadConfig(const std::string& path) {
   if (set_sdk_configs) {
     set_sdk_configs_ = *set_sdk_configs;
   }
+
+  return true;
 }
 
 void QbusConfigLoader::LoadRdkafkaConfig(
