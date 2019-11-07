@@ -1,5 +1,5 @@
 CXX = /usr/bin/g++
-CXX_FLAGS = -g
+CXX_FLAGS = -g -pthread
 INC_DIR = ../../src
 LIB_DIR = ../../lib/debug
 

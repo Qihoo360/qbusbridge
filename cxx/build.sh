@@ -1,16 +1,20 @@
 #/usr/bin
+set -o errexit
+cd `dirname $0`
+
 if [ $# != 1 ] ; then
   echo "USAGE: $0 [debug | release]"
   exit 1
 fi
 
-if [ ! -f ./thirdparts/librdkafka/src/librdkafka.a ]; then
-	./build_librdkafka.sh
-fi
+# TODO: set your own c/c++ compiler
+export CC=/usr/bin/gcc
+export CXX=/usr/bin/g++
 
 mkdir -p build
 
 cd build
+rm -rf ./*
 
 case "$1" in
   debug)

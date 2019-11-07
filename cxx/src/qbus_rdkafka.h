@@ -1,7 +1,7 @@
 #ifndef QBUS_RDKAFKA_H_
 #define QBUS_RDKAFKA_H_
 
-#include "thirdparts/librdkafka/src/rdkafka.h"
+#include "librdkafka/rdkafka.h"
 
 namespace qbus {
 

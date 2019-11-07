@@ -1,37 +1,50 @@
-# CMakeLists.txt for LightningServer
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
-
-PROJECT(QBus)
-
-#============================= check =========================================================
-IF (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-    MESSAGE(FATAL_ERROR "
-    CMake generation for ${PROJECT_NAME} not allowed within the #source directory!
-    Remove the CMakeCache.txt file and try again from another folder, e.g.:
-
-    rm -rf CMakeFiles CMakeCache.txt
-    mkdir cmake-make (or mkdir build)
-    cd cmake-make (or cd build)
-    cmake -G \"Unix Makefiles\" ../
-    ")
-ENDIF (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+PROJECT(QBus CXX)
 
 SET(CMAKE_VERBOSE_MAKEFILE TRUE)
 
-SET(CMAKE_USE_RELATIVE_PATHS TRUE)
+IF(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+ENDIF()
 
-IF (NOT CMAKE_BUILD_TYPE)
+# use different output directory for different build type
+MESSAGE(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    SET(CMAKE_CONFIGURATION_TYPES "Debug")
+    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../lib/debug")
+ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
+    SET(CMAKE_CONFIGURATION_TYPES "Release")
+    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../lib/release")
+ENDIF()
 
-    MESSAGE(STATUS "set default as MINSIZEREL")
+# find include directories and libraries
+SET(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+SET(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/../thirdparts/local")
+MESSAGE(STATUS "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
 
-    SET(CMAKE_BUILD_TYPE MINSIZEREL)
+FIND_PATH(LIBRDKAFKA_INCLUDE_DIR NAMES "librdkafka/rdkafka.h")
+FIND_LIBRARY(LIBRDKAFKA_LIB NAMES rdkafka)
 
-    SET(CMAKE_CONFIGURARION_TYPES "MINSIZEREL")
+IF(NOT LIBRDKAFKA_INCLUDE_DIR OR NOT LIBRDKAFKA_LIB)
+    MESSAGE(FATAL_ERROR "Can't find librdkafka")
+ENDIF()
 
-ENDIF(NOT CMAKE_BUILD_TYPE)
+MESSAGE(STATUS "LIBRDKAFKA_INCLUDE_DIR=${LIBRDKAFKA_INCLUDE_DIR}")
+MESSAGE(STATUS "LIBRDKAFKA_LIB=${LIBRDKAFKA_LIB}")
 
-#============================= sources ========================================================
+FIND_PATH(LOG4CPLUS_INCLUDE_DIR NAMES "log4cplus/logger.h")
+FIND_LIBRARY(LOG4CPLUS_LIB NAMES NAMES log4cplus)
+
+IF(NOT LOG4CPLUS_INCLUDE_DIR OR NOT LOG4CPLUS_LIB)
+    MESSAGE(FATAL_ERROR "Can't find log4cplus")
+ENDIF()
+
+MESSAGE(STATUS "LOG4CPLUS_INCLUDE_DIR=${LOG4CPLUS_INCLUDE_DIR}")
+MESSAGE(STATUS "LOG4CPLUS_LIB=${LOG4CPLUS_LIB}")
+
+# compile target shared library
 SET(PROJECT_ALL_FILES
     ../util/logger.cc
     ./qbus_helper.cc
@@ -44,53 +57,17 @@ SET(PROJECT_ALL_FILES
     ./qbus_topic_partition_set.cc
     )
 
-INCLUDE_DIRECTORIES(
-    ./
-    ../
-    )
-#=============================== build =========================================================
-IF (CMAKE_BUILD_TYPE MATCHES Debug)
-  MESSAGE(STATUS "${PROJECT_NAME} Debug ${CMAKE_BINARY_DIR}")
-  SET(CMAKE_CONFIGURATION_TYPES "Debug")
-  SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../lib/debug")
-ELSE (CMAKE_BUILD_TYPE MATCHES Debug)
-  MESSAGE(STATUS "${PROJECT_NAME} Release ${CMAKE_BINARY_DIR}")
-  SET(CMAKE_CONFIGURATION_TYPES "Release")
-  SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../lib/release")
-ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROJECT_ALL_FILES})
 
-ADD_DEFINITIONS(
-  )
-
-ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROJECT_ALL_FILES} )
-
-SET(CMAKE_FIND_LIBRARY_SUFFIXES .so)
-
-FIND_LIBRARY(LOG4CPLUS_LIB NAMES log4cplus PATHS /usr/local/lib /usr/lib )
-MESSAGE(STATUS "log4cplus lib path: ${LOG4CPLUS_LIB}")
+INCLUDE_DIRECTORIES(..)
+INCLUDE_DIRECTORIES(${LIBRDKAFKA_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${LOG4CPLUS_INCLUDE_DIR})
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-  ${LOG4CPLUS_LIB}
-  ${CMAKE_BINARY_DIR}/../thirdparts/librdkafka/src/librdkafka.a
-  z
-  stdc++
-  pthread
-  rt
-  dl
-  )
-
-MESSAGE(STATUS "source dir: ${PROJECT_SOURCE_DIR}")
-
-IF (CMAKE_BUILD_TYPE MATCHES Debug)
-    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-O0 -g -Wall " OUTPUT_NAME ${PROJECT_NAME})
-ELSE (CMAKE_BUILD_TYPE MATCHES Debug)
-    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-O2 -Wall " OUTPUT_NAME ${PROJECT_NAME})
-ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
-
-include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX11)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-else()
-	message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+    ${LIBRDKAFKA_LIB}
+    ${LOG4CPLUS_LIB}
+    dl
+    pthread
+    rt
+    z
+    )
