@@ -2,8 +2,11 @@
 set -o errexit
 cd `dirname $0`
 
-make clean
-make
+
+COMMAND="swig -go -c++ -cgo -intgosize 64 -o qbus_wrap.cxx qbus.i"
+echo "Generate swig interface files ..."
+echo "$ $COMMAND"
+eval $COMMAND
 
 rm -rf build_go
 mkdir build_go
