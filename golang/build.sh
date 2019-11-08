@@ -1,12 +1,19 @@
 #/usr/bin
+set -o errexit
+cd `dirname $0`
+
 make clean
 make
 
 rm -rf build_go
 mkdir build_go
 
+# TODO: set your own c/c++ compiler
+export CC=/usr/bin/gcc
+export CXX=/usr/bin/g++
+
 cd build_go
-cmake -DCMAKE_BUILD_TYPE=Debug ../
+cmake ..
 make
 cd ../
 

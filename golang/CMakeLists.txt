@@ -1,127 +1,64 @@
-# CMakeLists.txt for LightningServer
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
-
-PROJECT(QBus_go)
-
-#============================= check =========================================================
-IF (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-    MESSAGE(FATAL_ERROR "
-    CMake generation for ${PROJECT_NAME} not allowed within the #source directory!
-    Remove the CMakeCache.txt file and try again from another folder, e.g.:
-
-    rm -rf CMakeFiles CMakeCache.txt
-    mkdir cmake-make (or mkdir build)
-    cd cmake-make (or cd build)
-    cmake -G \"Unix Makefiles\" ../
-    ")
-ENDIF (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+PROJECT(QBus_go CXX)
 
 SET(CMAKE_VERBOSE_MAKEFILE TRUE)
+SET(CMAKE_CXX_FLAGS "-O2 -DNDEBUG")
 
-SET(CMAKE_USE_RELATIVE_PATHS TRUE)
+SET(CXX_SRC_DIR "${PROJECT_SOURCE_DIR}/../cxx/src")
 
-IF (NOT CMAKE_BUILD_TYPE)
+# find include directories and libraries
+SET(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+SET(CMAKE_PREFIX_PATH "${CXX_SRC_DIR}/../thirdparts/local")
+MESSAGE(STATUS "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
 
-    MESSAGE(STATUS "set default as MINSIZEREL")
+FIND_PATH(LIBRDKAFKA_INCLUDE_DIR NAMES "librdkafka/rdkafka.h")
+FIND_LIBRARY(LIBRDKAFKA_LIB NAMES rdkafka)
 
-    SET(CMAKE_BUILD_TYPE MINSIZEREL)
+IF(NOT LIBRDKAFKA_INCLUDE_DIR OR NOT LIBRDKAFKA_LIB)
+    MESSAGE(FATAL_ERROR "Can't find librdkafka")
+ENDIF()
 
-    SET(CMAKE_CONFIGURARION_TYPES "MINSIZEREL")
+MESSAGE(STATUS "LIBRDKAFKA_INCLUDE_DIR=${LIBRDKAFKA_INCLUDE_DIR}")
+MESSAGE(STATUS "LIBRDKAFKA_LIB=${LIBRDKAFKA_LIB}")
 
-ENDIF(NOT CMAKE_BUILD_TYPE)
+FIND_PATH(LOG4CPLUS_INCLUDE_DIR NAMES "log4cplus/logger.h")
+FIND_LIBRARY(LOG4CPLUS_LIB NAMES NAMES log4cplus)
 
-#============================= sources ========================================================
+IF(NOT LOG4CPLUS_INCLUDE_DIR OR NOT LOG4CPLUS_LIB)
+    MESSAGE(FATAL_ERROR "Can't find log4cplus")
+ENDIF()
+
+MESSAGE(STATUS "LOG4CPLUS_INCLUDE_DIR=${LOG4CPLUS_INCLUDE_DIR}")
+MESSAGE(STATUS "LOG4CPLUS_LIB=${LOG4CPLUS_LIB}")
+
+# compile target shared library
 SET(PROJECT_ALL_FILES
-    ../cxx/util/logger.cc
-    ../cxx/src/qbus_helper.cc
-    ../cxx/src/qbus_config.cc
-    ../cxx/src/qbus_consumer_imp.cc
-    ../cxx/src/qbus_record_msg.cc
-    ../cxx/src/qbus_consumer.cc
-    ../cxx/src/qbus_producer.cc
-	../cxx/src/qbus_rdkafka.cc
-    ../cxx/src/qbus_topic_partition_set.cc
-    ./qbus_wrap.cxx
+    ${CXX_SRC_DIR}/../util/logger.cc
+    ${CXX_SRC_DIR}/qbus_helper.cc
+    ${CXX_SRC_DIR}/qbus_config.cc
+    ${CXX_SRC_DIR}/qbus_record_msg.cc
+    ${CXX_SRC_DIR}/qbus_rdkafka.cc
+    ${CXX_SRC_DIR}/qbus_consumer_imp.cc
+    ${CXX_SRC_DIR}/qbus_consumer.cc
+    ${CXX_SRC_DIR}/qbus_producer.cc
+    ${CXX_SRC_DIR}/qbus_topic_partition_set.cc
+    qbus_wrap.cxx
     )
 
-INCLUDE_DIRECTORIES(
-    ../cxx/util
-    ../cxx/src
-    ../cxx
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROJECT_ALL_FILES})
+
+INCLUDE_DIRECTORIES(${CXX_SRC_DIR})
+INCLUDE_DIRECTORIES(${CXX_SRC_DIR}/..)
+INCLUDE_DIRECTORIES(${LIBRDKAFKA_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${LOG4CPLUS_INCLUDE_DIR})
+
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+    ${LIBRDKAFKA_LIB}
+    ${LOG4CPLUS_LIB}
+    dl
+    pthread
+    rt
+    z
     )
-#=============================== build =========================================================
-IF (CMAKE_BUILD_TYPE MATCHES Debug)
-    MESSAGE(STATUS "${PROJECT_NAME} Debug ${CMAKE_BINARY_DIR}")
-    SET(CMAKE_CONFIGURATION_TYPES "Debug")
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../")
-
-
-    ADD_DEFINITIONS(
-        )
-
-    ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROJECT_ALL_FILES} )
-
-    SET(CMAKE_FIND_LIBRARY_SUFFIXES .so)
-
-    FIND_LIBRARY(LOG4CPLUS_LIB NAMES log4cplus PATHS /usr/local/lib /usr/lib )
-    MESSAGE(STATUS "log4cplus lib path: ${LOG4CPLUS_LIB}")
-
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-        ${LOG4CPLUS_LIB}
-        ${SQLITE_LIB}
-        ${CMAKE_BINARY_DIR}/../../cxx/thirdparts/librdkafka/src/librdkafka.a
-        z
-        stdc++
-        pthread
-        rt
-        dl
-        )
-
-    MESSAGE(STATUS "source dir: ${PROJECT_SOURCE_DIR}")
-    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-O0 -g -Wall " OUTPUT_NAME ${PROJECT_NAME})
-
-include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX11)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-else()
-	message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
-    #SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-O0 -g -Wall -D NOT_USE_CONSUME_CALLBACK " OUTPUT_NAME ${PROJECT_NAME})
-
-ELSE (CMAKE_BUILD_TYPE MATCHES Debug)
-    MESSAGE(STATUS "${PROJECT_NAME} ${CMAKE_BUILD_TYPE}")
-    SET(CMAKE_CONFIGURATION_TYPES "Release")
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../lib/release")
-
-    ADD_DEFINITIONS(
-        )
-
-    #ADD_LIBRARY(${PROJECT_NAME} STATIC ${PROJECT_ALL_FILES} )
-    ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROJECT_ALL_FILES} )
-
-    SET(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-
-    FIND_LIBRARY(LOG4CPLUS_LIB NAMES log4cplus PATHS /usr/local/lib )
-    MESSAGE(STATUS "log4cplus lib path: ${LOG4CPLUS_LIB}")
-
-    FIND_LIBRARY(LIBRDKAFKA_LIB NAMES rdkafka PATHS ${CMAKE_BINARY_DIR}/../thirdparts/librdkafka/src NO_DEFAULT_PATH)
-    MESSAGE(STATUS "librdkafka lib path: ${LIBRDKAFKA_LIB}")
-
-    #set(CMAKE_EXE_LINKER_FLAGS "-static")
-    #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")
-
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-        ${LOG4CPLUS_LIB}
-        ${LIBRDKAFKA_LIB}
-        stdc++
-        pthread
-        rt
-        )
-
-    #SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-O0 -pthread -static"  OUTPUT_NAME ${PROJECT_NAME})
-    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-O0 -pthread "  OUTPUT_NAME ${PROJECT_NAME})
-
-ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
-
