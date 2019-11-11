@@ -2,7 +2,8 @@
 set -o errexit
 cd `dirname $0`
 
-# download submodules
+# init and download submodules
+git submodule init
 git submodule update
 
 # TODO: set your own c/c++ compiler
