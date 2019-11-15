@@ -38,7 +38,6 @@ SET(PROJECT_ALL_FILES
     ${CXX_SRC_DIR}/qbus_helper.cc
     ${CXX_SRC_DIR}/qbus_config.cc
     ${CXX_SRC_DIR}/qbus_record_msg.cc
-    ${CXX_SRC_DIR}/qbus_rdkafka.cc
     ${CXX_SRC_DIR}/qbus_consumer_imp.cc
     ${CXX_SRC_DIR}/qbus_consumer.cc
     ${CXX_SRC_DIR}/qbus_producer.cc

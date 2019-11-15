@@ -30,6 +30,7 @@ QbusProducerImp::QbusProducerImp()
       rd_kafka_topic_(NULL),
       rd_kafka_handle_(NULL),
       sync_send_err_(RD_KAFKA_RESP_ERR_NO_ERROR),
+      is_brokers_all_down_(false),
       broker_list_(""),
       is_sync_send_(false),
       is_init_(false),
@@ -101,8 +102,37 @@ void QbusProducerImp::Uninit() {
   INFO(__FUNCTION__ << " | Finished uninit");
 }
 
+bool QbusProducerImp::checkBrokersAllDown() {
+  assert(rd_kafka_handle_ && rd_kafka_topic_);
+
+  if (is_brokers_all_down_) {
+    // `is_brokers_all_down_` has been set true in `ErrorCallback`, so we try to
+    // fetch metadata to check if brokers are up again
+    const struct rd_kafka_metadata* metadata = NULL;
+    rd_kafka_resp_err_t err =
+        rd_kafka_metadata(rd_kafka_handle_, 0, rd_kafka_topic_, &metadata, 500);
+    if (err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+      INFO(__FUNCTION__ << " | Fetch metadata successfully, set "
+                           "is_brokers_all_down_ to false");
+      is_brokers_all_down_ = false;
+    } else {
+      DEBUG(__FUNCTION__ << " | rd_kafka_metadata() failed: "
+                         << rd_kafka_err2str(err));
+    }
+
+    if (metadata) rd_kafka_metadata_destroy(metadata);
+  }
+
+  return is_brokers_all_down_;
+}
+
 bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
                                       const std::string& key, void* opaque) {
+  if (checkBrokersAllDown()) {
+    ERROR(__FUNCTION__ << " | Failed: all broker connections are down");
+    return false;
+  }
+
   bool rt = false;
 
   sync_send_err_ = (rd_kafka_resp_err_t)RD_KAFKA_PRODUCE_ERROR_INIT_VALUE;
@@ -189,8 +219,7 @@ void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t* rk,
 
   if (producer->is_sync_send_) {
     producer->sync_send_err_ = rkmessage->err;
-  } else if (rkmessage->err && producer->is_init_ &&
-             rdkafka::hasAnyBroker(rk)) {
+  } else if (rkmessage->err && producer->is_init_) {
     if (NULL == producer->rd_kafka_handle_ ||
         -1 == rd_kafka_produce(producer->rd_kafka_topic_, RD_KAFKA_PARTITION_UA,
                                RD_KAFKA_MSG_F_COPY, rkmessage->payload,
@@ -235,6 +264,30 @@ void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t* rk,
   }
 }
 
+void QbusProducerImp::ErrorCallback(rd_kafka_t* rk, int err, const char* reason,
+                                    void* opaque) {
+  assert(opaque);
+  QbusProducerImp& producer = *static_cast<QbusProducerImp*>(opaque);
+
+  ERROR(__FUNCTION__ << " | error: "
+                     << rd_kafka_err2name((rd_kafka_resp_err_t)err)
+                     << " | reason: " << reason);
+
+  if (err == RD_KAFKA_RESP_ERR__ALL_BROKERS_DOWN)
+    producer.is_brokers_all_down_ = true;
+
+  if (err != RD_KAFKA_RESP_ERR__FATAL) return;
+
+  // Extract the actual underlying error code and description
+  char errstr[512];
+  rd_kafka_resp_err_t orig_err =
+      rd_kafka_fatal_error(rk, errstr, sizeof(errstr));
+  ERROR(__FUNCTION__ << " | fatal error: " << rd_kafka_err2name(orig_err)
+                     << " | reason: " << errstr);
+
+  // FIXME: maybe we should recreate it?
+}
+
 int32_t QbusProducerImp::PartitionHashFunc(const rd_kafka_topic_t* rkt,
                                            const void* keydata, size_t keylen,
                                            int32_t partition_cnt,
@@ -255,7 +308,7 @@ int32_t QbusProducerImp::PartitionHashFunc(const rd_kafka_topic_t* rkt,
 
     if (1 != rd_kafka_topic_partition_available(rkt, hit_partition)) {
       DEBUG(__FUNCTION__
-            << " | retry select parition | current invailed partiton: "
+            << " | retry select partition | current invalid partiton: "
             << hit_partition);
       hit_partition = 0;
     }
@@ -272,12 +325,13 @@ int32_t QbusProducerImp::PartitionHashFunc(const rd_kafka_topic_t* rkt,
         break;
       } else {
         DEBUG(__FUNCTION__
-              << " | retry select parition | current invailed partiton: "
+              << " | retry select partition | current invalid partiton: "
               << hit_partition);
         partition_set.erase(hit_partition);
         if (partition_set.empty()) {
-          DEBUG(__FUNCTION__
-                << " | failed to select parition | use RD_KAFKA_PARTITION_UA!");
+          DEBUG(
+              __FUNCTION__
+              << " | failed to select partition | use RD_KAFKA_PARTITION_UA!");
           hit_partition = rd_kafka_msg_partitioner_random(
               rkt, keydata, keylen, partition_cnt, rkt_opaque, msg_opaque);
           ;
@@ -309,6 +363,8 @@ bool QbusProducerImp::InitRdKafkaConfig() {
       config_loader_.LoadRdkafkaConfig(rd_kafka_conf_, rd_kafka_topic_conf_);
       rd_kafka_conf_set_dr_msg_cb(rd_kafka_conf_,
                                   &QbusProducerImp::MsgDeliveredCallback);
+      rd_kafka_conf_set_error_cb(rd_kafka_conf_,
+                                 &QbusProducerImp::ErrorCallback);
 
       rd_kafka_topic_conf_set_partitioner_cb(
           rd_kafka_topic_conf_, &QbusProducerImp::PartitionHashFunc);

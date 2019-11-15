@@ -22,6 +22,8 @@ class QbusProducerImp {
   static void MsgDeliveredCallback(rd_kafka_t* rk,
                                    const rd_kafka_message_t* rkmessage,
                                    void* opaque);
+  static void ErrorCallback(rd_kafka_t* rk, int err, const char* reason,
+                            void* opaque);
   static int32_t PartitionHashFunc(const rd_kafka_topic_t* rkt,
                                    const void* keydata, size_t keylen,
                                    int32_t partition_cnt, void* rkt_opaque,
@@ -33,6 +35,10 @@ class QbusProducerImp {
   bool InternalProduce(const char* data, size_t data_len,
                        const std::string& key, void* opaque);
 
+  // If brokers are not all down now, set `is_brokers_all_down_` to false and
+  // returns false. Otherwise returns true.
+  bool checkBrokersAllDown();
+
  private:
   rd_kafka_conf_t* rd_kafka_conf_;
   rd_kafka_topic_conf_t* rd_kafka_topic_conf_;
@@ -41,6 +47,7 @@ class QbusProducerImp {
   rd_kafka_resp_err_t sync_send_err_;
 
   std::string broker_list_;
+  bool is_brokers_all_down_;
 
   QbusConfigLoader config_loader_;
 

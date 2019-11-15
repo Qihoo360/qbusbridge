@@ -5,7 +5,6 @@ CXXDIR    = ../cxx
 CXXSRCS  = $(CXXDIR)/src/qbus_helper.cc \
 			$(CXXDIR)/src/qbus_config.cc \
 			$(CXXDIR)/src/qbus_record_msg.cc \
-			$(CXXDIR)/src/qbus_rdkafka.cc \
 			$(CXXDIR)/src/qbus_consumer.cc \
 			$(CXXDIR)/src/qbus_consumer_imp.cc \
 			$(CXXDIR)/src/qbus_producer.cc \
