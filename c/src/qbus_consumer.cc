@@ -90,7 +90,7 @@ QbusResult InitQbusConsumer(QbusConsumerHandle handle, const char* cluster_name,
                             QbusConsumerDeliveryFuncType callback) {
   QbusResult rt = QBUS_RESULT_FAILED;
 
-  if (NULL != handle && NULL != cluster_name && '\0' != cluster_name[0]) {
+  if (NULL != handle && NULL != cluster_name) {
     QbusConsumerRealHandle* qbus_consumer_real_handle =
         (QbusConsumerRealHandle*)handle;
     if (NULL != qbus_consumer_real_handle &&

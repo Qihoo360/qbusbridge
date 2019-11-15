@@ -36,8 +36,7 @@ QbusResult InitQbusProducer(QbusProducerHandle handle, const char* cluster_name,
                             const char* topic_name) {
   QbusResult rt = QBUS_RESULT_FAILED;
 
-  if (NULL != handle && NULL != cluster_name && '\0' != cluster_name[0] &&
-      NULL != topic_name) {
+  if (NULL != handle && NULL != cluster_name && NULL != topic_name) {
     QbusProducerRealHandle* producer_real_handle =
         (QbusProducerRealHandle*)handle;
     if (NULL != producer_real_handle &&
