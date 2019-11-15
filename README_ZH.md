@@ -13,7 +13,7 @@
 
 ## 编译
 
-***依赖liblog4cplus-1.2.1, boost, swig-3.0.12, cmake***
+确保你的系统上安装了 boost (>= 1.41)，cmake (>= 2.8)，swig (>= 3.0.12)。
 
 #### git clone
 
@@ -39,17 +39,8 @@ C的SDK依赖于C++的SDK，因此得先编译C++ SDK。
 #### Python
 进入`python`目录，执行`./build.sh`，在当前目录会生成`qbus.py`和`_qbus.so`。
 
-编译脚本提供了选项用来指定Python头文件目录（`Python.h`所在目录）和Python版本，可以通过`./build.sh -h`查看使用方法：
-
-- `-s`选项指定Python头文件目录，默认`/usr/local/python2.7/include/python2.7`；
-- `-v`选项指定Python版本，默认`python2.7`。
-
 #### PHP
 进入`php`目录，执行`./build.sh`，在当前目录会生成`qbus.so`和`qbus.php`。
-编译脚本提供了选项用来指定PHP头文件目录和PHP版本，可以通过`./build.sh -h`查看使用方法：
-
-- `-s`选项指定PHP头文件目录，默认`/usr/local/php/include/php`；
-- `-v`选项指定PHP版本（`php`或`php7`），默认`php`，即PHP 5。
 
 ### 3. 编译示例程序
 

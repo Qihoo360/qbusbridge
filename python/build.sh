@@ -1,50 +1,27 @@
 #!/bin/bash
+set -o errexit
+cd `dirname $0`
 
-PYTHON_LINK="-lpython2.7"
-PYTHON_INCLUDE="-I/usr/local/python2.7/include/python2.7"
+swig -python -c++ -threads -o qbus_wrap.cxx qbus.i
 
-print_usage()
-{
-    echo "Usage:
-    -s </usr/local/python2.7/include/python2.7>   header file src
-    -v <python2.7>			   	  python version 
-    -h                             		  help"
- 
-    exit 1
-}
- 
-while getopts "s:v:h" arg # 选项后面的冒号表示该选项需要参数
-do
-    case $arg in
-        s)
-	    if [ "$OPTARG" ];then
-	    	PYTHON_INCLUDE="-I$OPTARG"
-	    fi
-            ;;
-        v)
-	    if [ "$OPTARG" ];then
-	    	PYTHON_LINK="-l$OPTARG"
-	    fi
-            ;;
-        h)
-            print_usage
-            ;;
-        ?)
-            print_usage
-            ;;
-    esac
-done
+mkdir -p build
+rm -rf build/*
+cd build
 
-echo $PYTHON_INCLUDE
-echo $PYTHON_LINK
+# TODO: set your own c/c++ compiler
+export CC=/usr/bin/gcc
+export CXX=/usr/bin/g++
 
-make clean
+PYTHON_LIB_DIR=$(python -c "import distutils.sysconfig as sysconfig; print(sysconfig.get_config_var('LIBDIR'))")
+PYTHON_VERSION=$(python -c "import platform; print(platform.python_version()[:3])")
+PYTHON_LIBRARY="$PYTHON_LIB_DIR/libpython$PYTHON_VERSION.so"
+PYTHON_INCLUDE_DIR=$(python -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())") 
 
-CENT_VER=""
-ver=`rpm -q centos-release|cut -d- -f3`
-if [ "$ver" == "7" ];then
-	CENT_VER="-std=c++11"
-fi
+cmake .. \
+    -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARY=$PYTHON_LIBRARY
+make
 
-
-make -f Makefile SWIG_LIB_DIR=/usr/local/share/swig/3.0.12/ PYTHON_INCLUDE=$PYTHON_INCLUDE CENT_VER=$CENT_VER #PYTHON_LINK=$PYTHON_LINK 
+cd -
+mv libQBus_py.so _qbus.so
+cp -v ./_qbus.so ./qbus.py examples

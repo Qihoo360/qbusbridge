@@ -14,7 +14,7 @@
 
 ## Compiling
 
-***Dependencies: liblog4cplus-1.2.1, boost, swig-3.0.12, cmake***
+Ensure your system has boost (>= 1.41), cmake (>= 2.8) and swig (>= 3.0.12) installed.
 
 #### git clone:
 git clone --recursive https://github.com/Qihoo360/kafkabridge.git
@@ -34,24 +34,14 @@ Navigate to the `cxx` directory and run `./build.sh <BUILD_TYPE>` (`<BUILD_TYPE`
 Then navigate to the `c` directory and run `./build.sh <BUILD_TYPE>`, you'll get `libQBus_C.so` in `c/lib/<BUILD_TYPE>` directory.
 
 #### Go
-Navigate to the `golang` directory and run `build.sh`, you'll get `qbus.py` and `libQBus_go.so` in `gopath/src/qbus` subdirectory.
+Navigate to the `golang` directory and run `./build.sh`, you'll get `qbus.py` and `libQBus_go.so` in `gopath/src/qbus` subdirectory.
 
 #### Python
 Navigate to the `python` directory and run `./build.sh`, you'll get `qbus.py` and `_qbus.so` in the current directory.
 
-The `build.sh` provides options to specify Python header directory (where `Python.h` lies) and Python version. Run `./build.sh -h` to see usage:
-
-- `-s` specifies Python header directory, default `/usr/local/python2.7/include/python2.7`;
-- `-v` specifies Python version, default `python2.7`.
-
 
 #### PHP
 Navigate to the `php` directory and run `build.sh`, you'll get `qbus.so` and `qbus.php` in the current directory.
-
-The `build.sh` provides options to specify PHP header directory and PHP version. Run `./build.sh -h` to see usage:
-
-- `-s` specifies PHP header directory, default `/usr/local/php/include/php`;
-- `-v` specifies PHP version (`php` or `php7`), default `php`, which means PHP 5.
 
 ### 3. Build examples
 

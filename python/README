@@ -1,3 +1,0 @@
-1. 执行./build.sh
-2. 生成的qbus.py和_qbus.so拷到examples
-3. 例程中import qbus

@@ -1,49 +1,37 @@
 #!/bin/bash
+set -o errexit
+cd `dirname $0`
 
-PHP_VER="php"
-PHP_SRC="/usr/local/php/include/php"
+PHP_VERSION=`php-config --version`
+echo "PHP version: $PHP_VERSION"
 
-print_usage()
-{
-    echo "Usage:
-    -s </usr/local/php/include/php>            header file src
-    -v <php>			   php version php/php7
-    -h                             help"
- 
+case ${PHP_VERSION:0:1} in
+    7)
+        PHP_VERSION=php7
+        ;;
+    5)
+        PHP_VERSION=php
+        ;;
+    *)
+    echo "Unknown php version (not 5.x.y or 7.x.y): $PHP_VERSION"
     exit 1
-}
- 
-while getopts "s:v:h" arg # 选项后面的冒号表示该选项需要参数
-do
-    case $arg in
-        s)
-	    if [ "$OPTARG" ];then
-	    	PHP_SRC="$OPTARG"
-	    fi
-            ;;
-        v)
-	    if [ "$OPTARG" ];then
-	    	PHP_VER="$OPTARG"
-	    fi
-            ;;
-        h)
-            print_usage
-            ;;
-        ?)
-            print_usage
-            ;;
-    esac
-done
+esac
 
-echo $PHP_VER
-echo $PHP_SRC
+swig -$PHP_VERSION -cppext cxx -c++ -o qbus_wrap.cxx qbus.i
 
-make clean
+PHP_INCLUDES=`php-config --includes`
+echo "PHP includes: $PHP_INCLUDES"
 
-CENT_VER=""
-ver=`rpm -q centos-release|cut -d- -f3`
-if [ "$ver" == "7" ];then
-	CENT_VER="-std=c++11"
-fi
+mkdir -p build
+rm -rf build/*
+cd build
 
-make -f Makefile SWIG_LIB_DIR=/usr/local/share/swig/3.0.12/ PHP_SRC=$PHP_SRC PHP_VER=$PHP_VER CENT_VER=$CENT_VER
+# TODO: set your own c/c++ compiler
+export CC=/usr/bin/gcc
+export CXX=/usr/bin/g++
+
+cmake .. -DPHP_INCLUDE_DIRS="$PHP_INCLUDES"
+make
+
+cd -
+mv libQBus_php.so qbus.so

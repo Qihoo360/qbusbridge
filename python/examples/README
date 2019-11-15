@@ -1,3 +1,0 @@
-usage:
-1. Put qbus.py and _qbus.so in the same directory
-2. In program: import qbus
