@@ -144,7 +144,7 @@ bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
                 key.length() > 0 ? key.c_str() : NULL, key.length(), opaque)) {
     ERROR(__FUNCTION__ << " | Failed to produce"
                        << " | topic: " << rd_kafka_topic_name(rd_kafka_topic_)
-                       << " | partition: " << -1 << " | msg error: "
+                       << " | error: "
                        << rd_kafka_err2str(rd_kafka_last_error()));
   } else if (is_sync_send_) {
     DEBUG(__FUNCTION__ << " | sync send msg");
@@ -155,14 +155,8 @@ bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
                     RD_KAFKA_PRODUCE_SYNC_SEND_POLL_TIMEOUT_MS);
     }
 
-    if (RD_KAFKA_RESP_ERR_NO_ERROR != sync_send_err_) {
-      ERROR(__FUNCTION__ << " | Failed to sync produce"
-                         << " | topic: " << rd_kafka_topic_name(rd_kafka_topic_)
-                         << " | partition: " << -1 << " | msg error: "
-                         << rd_kafka_err2str(sync_send_err_));
-    } else {
-      rt = true;
-    }
+    // We have logged error info in MsgDeliveredCallback() before.
+    rt = (sync_send_err_ == RD_KAFKA_RESP_ERR_NO_ERROR);
   } else {
     rd_kafka_poll(rd_kafka_handle_, 0);
     rt = true;
@@ -210,57 +204,44 @@ bool QbusProducerImp::InitRdKafkaHandle(const std::string& topic_name) {
 void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t* rk,
                                            const rd_kafka_message_t* rkmessage,
                                            void* opaque) {
-  QbusProducerImp* producer = static_cast<QbusProducerImp*>(opaque);
-  if (NULL == producer) {
-    ERROR(__FUNCTION__
-          << " | Failed to static_cast from opaque to QbusProducerImp");
-    return;
-  }
+  assert(rk && rkmessage && opaque);
+  QbusProducerImp& producer = *static_cast<QbusProducerImp*>(opaque);
+  rdkafka::MessageRef msg_ref(*rkmessage);
 
-  if (producer->is_sync_send_) {
-    producer->sync_send_err_ = rkmessage->err;
-  } else if (rkmessage->err && producer->is_init_) {
-    if (NULL == producer->rd_kafka_handle_ ||
-        -1 == rd_kafka_produce(producer->rd_kafka_topic_, RD_KAFKA_PARTITION_UA,
-                               RD_KAFKA_MSG_F_COPY, rkmessage->payload,
-                               rkmessage->len, NULL, 0, 0)) {
-      ERROR(__FUNCTION__ << " | Failed to reproduce"
-                         << " | topic: "
-                         << rd_kafka_topic_name(producer->rd_kafka_topic_)
-                         << " | partition: " << -1 << " | msg error: "
-                         << rd_kafka_err2str(rd_kafka_last_error()));
-    }
-  }
+  if (msg_ref.hasError()) {
+    ERROR(__FUNCTION__ << " | Failed to delivery message"
+                       << " | error: " << msg_ref.errorString()
+                       << " | topic: " << msg_ref.topicName()
+                       << " | partition: " << msg_ref.partition());
+    DEBUG(__FUNCTION__ << " | Failed to delivery message"
+                       << " | key: " << msg_ref.keyString()
+                       << " | payload: " << msg_ref.payloadString());
 
-  if (rkmessage->err) {
-    ERROR(__FUNCTION__
-          << " | Failed to delivery message | err msg:"
-          << rd_kafka_err2str(rkmessage->err) << " | topic:"
-          << (NULL != rd_kafka_topic_name(producer->rd_kafka_topic_)
-                  ? rd_kafka_topic_name(producer->rd_kafka_topic_)
-                  : "")
-          << " | partition: " << rkmessage->partition << " | msg:"
-          << (NULL != rkmessage->payload
-                  ? std::string(static_cast<char*>(rkmessage->payload),
-                                rkmessage->len)
-                  : ""));
-    if (producer->is_record_msg_for_send_failed_) {
-      QbusRecordMsg::recordMsg(
-          (NULL != rd_kafka_topic_name(producer->rd_kafka_topic_)
-               ? rd_kafka_topic_name(producer->rd_kafka_topic_)
-               : ""),
-          (NULL != rkmessage->payload
-               ? std::string(static_cast<char*>(rkmessage->payload),
-                             rkmessage->len)
-               : ""));
+    if (producer.is_record_msg_for_send_failed_) {
+      QbusRecordMsg::recordMsg(msg_ref.topicName(), msg_ref.payloadString());
     }
   } else {
-    DEBUG(__FUNCTION__ << " Successed to delivery message | bytes: "
-                       << rkmessage->len << " | offset: " << rkmessage->offset
-                       << " | partition: " << rkmessage->partition << " | msg: "
-                       << std::string(static_cast<char*>(rkmessage->payload),
-                                      rkmessage->len)
-                       << " | " << producer->is_record_msg_for_send_failed_);
+    DEBUG(__FUNCTION__ << " | Message delivered successfully"
+                       << " | topic: " << msg_ref.topicName()
+                       << " | partition: " << msg_ref.partition()
+                       << " | offset: " << msg_ref.offset()
+                       << " | key: " << msg_ref.keyString()
+                       << " | payload: " << msg_ref.payloadString());
+  }
+
+  if (producer.is_sync_send_) {
+    producer.sync_send_err_ = msg_ref.err();
+  } else if (msg_ref.hasError() && producer.is_init_) {
+    if (-1 == rd_kafka_produce(msg_ref.rkt(), RD_KAFKA_PARTITION_UA,
+                               RD_KAFKA_MSG_F_COPY, msg_ref.payload(),
+                               msg_ref.len(), msg_ref.key(), msg_ref.key_len(),
+                               NULL)) {
+      ERROR(__FUNCTION__ << " | Failed to reproduce"
+                         << " | topic: " << msg_ref.topicName()
+                         << " | partition: " << msg_ref.partition()
+                         << " | error: "
+                         << rd_kafka_err2str(rd_kafka_last_error()));
+    }
   }
 }
 
