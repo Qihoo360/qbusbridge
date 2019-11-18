@@ -18,7 +18,7 @@ struct PartitionListGuard {
 };
 
 inline std::string BytesToString(const void* data, size_t size,
-                                 const char* default_value = "") {
+                                 const std::string& default_value = "") {
   std::string value = default_value;
   if (data) value = std::string(static_cast<const char*>(data), size);
   return value;
@@ -45,7 +45,9 @@ class MessageRef {
 
   const char* topicName() const { return rd_kafka_topic_name(rkt()); }
 
-  std::string keyString() const { return BytesToString(key(), key_len(), "<null>"); }
+  std::string keyString() const {
+    return BytesToString(key(), key_len(), "<null>");
+  }
 
   std::string payloadString() const { return BytesToString(payload(), len()); }
 
