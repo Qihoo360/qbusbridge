@@ -108,24 +108,8 @@ bool QbusConsumerImp::InitRdKafkaConfig() {
       // set client.id
       QbusHelper::SetClientId(rd_kafka_conf_);
 
-      // set stored offset into zk or broker
-      if (config_loader_.IsSetConfig(RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD,
-                                     true)) {
-        rt = true;
-      } else {
-        rt = QbusHelper::SetRdKafkaTopicConfig(
-            rd_kafka_topic_conf_, RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD,
-            RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD_BROKER);
-      }
-
-      if (!rt) {
-        ERROR(__FUNCTION__ << " | set topic config["
-                           << RD_KAFKA_TOPIC_CONFIG_OFFSET_STORED_METHOD
-                           << "] failed");
-      } else {
-        rd_kafka_conf_set_default_topic_conf(rd_kafka_conf_,
-                                             rd_kafka_topic_conf_);
-      }
+      rd_kafka_conf_set_default_topic_conf(rd_kafka_conf_,
+                                           rd_kafka_topic_conf_);
 
       // set whether auto reset offset when current offset is invalid, default
       // earliest

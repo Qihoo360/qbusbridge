@@ -54,8 +54,7 @@ class QbusProducerImp {
   bool is_sync_send_;
   bool is_init_;
   bool is_record_msg_for_send_failed_;
-  bool is_speedup_terminate_;
-  bool fast_exit_;
 };
+
 }  // namespace qbus
 #endif  //#define QBUS_PRODUCER_IMP_H_

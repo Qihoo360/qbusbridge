@@ -34,9 +34,7 @@ QbusProducerImp::QbusProducerImp()
       broker_list_(""),
       is_sync_send_(false),
       is_init_(false),
-      is_record_msg_for_send_failed_(false),
-      is_speedup_terminate_(false),
-      fast_exit_(false) {}
+      is_record_msg_for_send_failed_(false) {}
 
 QbusProducerImp::~QbusProducerImp() {}
 
@@ -380,7 +378,7 @@ bool QbusProducerImp::InitRdKafkaConfig() {
                                      RD_KAFKA_CONFIG_QUEUE_BUFFERING_MAX_MS,
                                      RD_KAFKA_CONFIG_QUEUE_BUFFERING_SYNC);
         QbusHelper::SetRdKafkaConfig(
-            rd_kafka_conf_, RD_KAFKA_CONFIG_SOCKET_BLOKING_MAX_MX,
+            rd_kafka_conf_, RD_KAFKA_CONFIG_SOCKET_BLOCKING_MAX_MS,
             RD_KAFKA_SDK_MINIMIZE_PRODUCER_LATENCY_VALUE);
       }
 
@@ -396,7 +394,7 @@ bool QbusProducerImp::InitRdKafkaConfig() {
             rd_kafka_conf_, RD_KAFKA_CONFIG_QUEUE_BUFFERING_MAX_MS,
             RD_KAFKA_SDK_MINIMIZE_PRODUCER_LATENCY_VALUE);
         QbusHelper::SetRdKafkaConfig(
-            rd_kafka_conf_, RD_KAFKA_CONFIG_SOCKET_BLOKING_MAX_MX,
+            rd_kafka_conf_, RD_KAFKA_CONFIG_SOCKET_BLOCKING_MAX_MS,
             RD_KAFKA_SDK_MINIMIZE_PRODUCER_LATENCY_VALUE);
       }
 
