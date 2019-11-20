@@ -35,7 +35,11 @@ class QbusProducerImp {
   bool InitRdKafkaHandle(const std::string& topic_name);
 
   bool InternalProduce(const char* data, size_t data_len,
-                       const std::string& key, void* opaque);
+                       const std::string& key);
+
+  // wrapper of rd_kafka_produce()
+  bool AsyncProduce(const void* payload, size_t len, const void* key,
+                    size_t keylen) const;
 
  private:
   rd_kafka_conf_t* rd_kafka_conf_;

@@ -99,8 +99,18 @@ void QbusProducerImp::Uninit() {
   INFO(__FUNCTION__ << " | Finished uninit");
 }
 
+bool QbusProducerImp::AsyncProduce(const void* payload, size_t len,
+                                   const void* key, size_t keylen) const {
+  assert(rd_kafka_topic_);
+
+  // We use RD_KAFKA_PARTITION_UA, so it's safe to remove const qualifier
+  return rd_kafka_produce(rd_kafka_topic_, RD_KAFKA_PARTITION_UA,
+                          RD_KAFKA_MSG_F_COPY, const_cast<void*>(payload), len,
+                          key, keylen, NULL) == 0;
+}
+
 bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
-                                      const std::string& key, void* opaque) {
+                                      const std::string& key) {
   assert(rd_kafka_handle_ && rd_kafka_topic_);
 
   // Poll at frequent intervals to serve following callbacks
@@ -122,10 +132,8 @@ bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
 
   sync_send_err_ = (rd_kafka_resp_err_t)RD_KAFKA_PRODUCE_ERROR_INIT_VALUE;
 
-  if (-1 == rd_kafka_produce(
-                rd_kafka_topic_, RD_KAFKA_PARTITION_UA, RD_KAFKA_MSG_F_COPY,
-                static_cast<void*>(const_cast<char*>(data)), data_len,
-                key.length() > 0 ? key.c_str() : NULL, key.length(), opaque)) {
+  const char* key_ptr = (key.empty() ? NULL : key.c_str());
+  if (!AsyncProduce(data, data_len, key_ptr, key.length())) {
     ERROR(__FUNCTION__ << " | Failed to produce"
                        << " | topic: " << rd_kafka_topic_name(rd_kafka_topic_)
                        << " | error: "
@@ -156,7 +164,15 @@ bool QbusProducerImp::Produce(const char* data, size_t data_len,
     return false;
   }
 
-  return InternalProduce(data, data_len, key, 0);
+  assert(data);
+  bool rt = InternalProduce(data, data_len, key);
+
+  if (!rt && is_record_msg_for_send_failed_) {
+    QbusRecordMsg::recordMsg(rd_kafka_topic_name(rd_kafka_topic_),
+                             std::string(data, data_len));
+  }
+
+  return rt;
 }
 
 bool QbusProducerImp::InitRdKafkaHandle(const std::string& topic_name) {
@@ -215,15 +231,16 @@ void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t* rk,
   if (producer.is_sync_send_) {
     producer.sync_send_err_ = msg_ref.err();
   } else if (msg_ref.hasError() && producer.is_init_) {
-    if (-1 == rd_kafka_produce(msg_ref.rkt(), RD_KAFKA_PARTITION_UA,
-                               RD_KAFKA_MSG_F_COPY, msg_ref.payload(),
-                               msg_ref.len(), msg_ref.key(), msg_ref.key_len(),
-                               NULL)) {
+    if (!producer.AsyncProduce(msg_ref.payload(), msg_ref.len(), msg_ref.key(),
+                               msg_ref.key_len())) {
       ERROR(__FUNCTION__ << " | Failed to reproduce"
                          << " | topic: " << msg_ref.topicName()
                          << " | partition: " << msg_ref.partition()
                          << " | error: "
                          << rd_kafka_err2str(rd_kafka_last_error()));
+      if (producer.is_record_msg_for_send_failed_) {
+        QbusRecordMsg::recordMsg(msg_ref.topicName(), msg_ref.payloadString());
+      }
     }
   }
 }
