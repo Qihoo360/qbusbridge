@@ -75,8 +75,7 @@ bool QbusProducerImp::Init(const std::string& broker_list,
 }
 
 void QbusProducerImp::Uninit() {
-  rd_kafka_poll(rd_kafka_handle_, 0);
-  if (is_init_) is_init_ = false;
+  is_init_ = false;
 
   INFO(__FUNCTION__ << " | Starting uninit...");
 
@@ -100,33 +99,21 @@ void QbusProducerImp::Uninit() {
   INFO(__FUNCTION__ << " | Finished uninit");
 }
 
-bool QbusProducerImp::checkBrokersAllDown() {
-  assert(rd_kafka_handle_ && rd_kafka_topic_);
-
-  if (is_brokers_all_down_) {
-    // `is_brokers_all_down_` has been set true in `ErrorCallback`, so we try to
-    // fetch metadata to check if brokers are up again
-    const struct rd_kafka_metadata* metadata = NULL;
-    rd_kafka_resp_err_t err =
-        rd_kafka_metadata(rd_kafka_handle_, 0, rd_kafka_topic_, &metadata, 500);
-    if (err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-      INFO(__FUNCTION__ << " | Fetch metadata successfully, set "
-                           "is_brokers_all_down_ to false");
-      is_brokers_all_down_ = false;
-    } else {
-      DEBUG(__FUNCTION__ << " | rd_kafka_metadata() failed: "
-                         << rd_kafka_err2str(err));
-    }
-
-    if (metadata) rd_kafka_metadata_destroy(metadata);
-  }
-
-  return is_brokers_all_down_;
-}
-
 bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
                                       const std::string& key, void* opaque) {
-  if (checkBrokersAllDown()) {
+  assert(rd_kafka_handle_ && rd_kafka_topic_);
+
+  // Poll at frequent intervals to serve following callbacks
+  // - MsgDeliveredCallback
+  // - StatsCallback
+  // - ErrorCallback
+  // `is_brokers_all_down_` may be set to false in StatsCallback and may be set
+  // to true in ErrorCallback.
+  // Also, if produce queue is full, rd_kafka_produce() will failed with
+  // ERR__QUEUE_FULL, rd_kafka_poll() may retrieve events from it.
+  rd_kafka_poll(rd_kafka_handle_, 0);
+
+  if (is_brokers_all_down_) {
     ERROR(__FUNCTION__ << " | Failed: all broker connections are down");
     return false;
   }
@@ -135,8 +122,7 @@ bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
 
   sync_send_err_ = (rd_kafka_resp_err_t)RD_KAFKA_PRODUCE_ERROR_INIT_VALUE;
 
-  if (NULL == rd_kafka_handle_ ||
-      -1 == rd_kafka_produce(
+  if (-1 == rd_kafka_produce(
                 rd_kafka_topic_, RD_KAFKA_PARTITION_UA, RD_KAFKA_MSG_F_COPY,
                 static_cast<void*>(const_cast<char*>(data)), data_len,
                 key.length() > 0 ? key.c_str() : NULL, key.length(), opaque)) {
@@ -165,13 +151,12 @@ bool QbusProducerImp::InternalProduce(const char* data, size_t data_len,
 
 bool QbusProducerImp::Produce(const char* data, size_t data_len,
                               const std::string& key) {
-  bool rt = false;
-
-  if (is_init_) {
-    rt = InternalProduce(data, data_len, key, 0);
+  if (!is_init_ || !rd_kafka_handle_ || !rd_kafka_topic_) {
+    ERROR(__FUNCTION__ << " | Producer not initialized");
+    return false;
   }
 
-  return rt;
+  return InternalProduce(data, data_len, key, 0);
 }
 
 bool QbusProducerImp::InitRdKafkaHandle(const std::string& topic_name) {
@@ -202,7 +187,7 @@ bool QbusProducerImp::InitRdKafkaHandle(const std::string& topic_name) {
 void QbusProducerImp::MsgDeliveredCallback(rd_kafka_t* rk,
                                            const rd_kafka_message_t* rkmessage,
                                            void* opaque) {
-  assert(rk && rkmessage && opaque);
+  assert(opaque);
   QbusProducerImp& producer = *static_cast<QbusProducerImp*>(opaque);
   rdkafka::MessageRef msg_ref(*rkmessage);
 
@@ -265,6 +250,23 @@ void QbusProducerImp::ErrorCallback(rd_kafka_t* rk, int err, const char* reason,
                      << " | reason: " << errstr);
 
   // FIXME: maybe we should recreate it?
+}
+
+int QbusProducerImp::StatsCallback(rd_kafka_t* rk, char* json, size_t json_len,
+                                   void* opaque) {
+  assert(opaque);
+  QbusProducerImp& producer = *static_cast<QbusProducerImp*>(opaque);
+
+  // check if brokers are up again
+  if (producer.is_brokers_all_down_) {
+    std::string broker = rdkafka::findAnyUpBroker(json);
+    if (!broker.empty()) {
+      producer.is_brokers_all_down_ = false;
+      INFO(__FUNCTION__ << " | broker " << broker << " is up again.");
+    }
+  }
+
+  return 0;
 }
 
 int32_t QbusProducerImp::PartitionHashFunc(const rd_kafka_topic_t* rkt,
@@ -344,6 +346,8 @@ bool QbusProducerImp::InitRdKafkaConfig() {
                                   &QbusProducerImp::MsgDeliveredCallback);
       rd_kafka_conf_set_error_cb(rd_kafka_conf_,
                                  &QbusProducerImp::ErrorCallback);
+      rd_kafka_conf_set_stats_cb(rd_kafka_conf_,
+                                 &QbusProducerImp::StatsCallback);
 
       rd_kafka_topic_conf_set_partitioner_cb(
           rd_kafka_topic_conf_, &QbusProducerImp::PartitionHashFunc);
@@ -359,6 +363,14 @@ bool QbusProducerImp::InitRdKafkaConfig() {
         QbusHelper::SetRdKafkaConfig(
             rd_kafka_conf_, RD_KAFKA_CONFIG_TOPIC_METADATA_REFRESH_INTERVAL,
             RD_KAFKA_CONFIG_TOPIC_METADATA_REFRESH_INTERVAL_MS);
+      }
+
+      // enable statistics
+      if (!config_loader_.IsSetConfig(RD_KAFKA_CONFIG_STATISTICS_INTERVAL_MS,
+                                      false)) {
+        QbusHelper::SetRdKafkaConfig(
+            rd_kafka_conf_, RD_KAFKA_CONFIG_STATISTICS_INTERVAL_MS,
+            RD_KAFKA_CONFIG_STATISTICS_INTERVAL_MS_DEFAULT);
       }
 
       std::string sync_send = config_loader_.GetSdkConfig(

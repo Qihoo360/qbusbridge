@@ -55,6 +55,16 @@ class MessageRef {
   const rd_kafka_message_t& msg_;
 };
 
+/**
+ * @brief Parse JSON string to find a "UP" state broker.
+ *
+ * @param json JSON string from stats_cb (see rd_kafka_conf_set_stats_cb()).
+ *
+ * @return The "UP" state broker's name or "" on error.
+ *         The name's format is "<ip>:<port>/<brokerId>", eg. "localhost:9092/0"
+ */
+std::string findAnyUpBroker(const char* json);
+
 }  // namespace rdkafka
 
 }  // namespace qbus

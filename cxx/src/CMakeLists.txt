@@ -54,6 +54,7 @@ SET(PROJECT_ALL_FILES
     ./qbus_consumer.cc
     ./qbus_producer.cc
     ./qbus_topic_partition_set.cc
+    ./qbus_rdkafka.cc
     )
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROJECT_ALL_FILES})
