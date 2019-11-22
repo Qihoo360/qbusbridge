@@ -103,7 +103,7 @@ bool QbusProducerImp::AsyncProduce(const void* payload, size_t len,
                                    const void* key, size_t keylen) const {
   assert(rd_kafka_topic_);
 
-  // We use RD_KAFKA_PARTITION_UA, so it's safe to remove const qualifier
+  // We use RD_KAFKA_MSG_F_COPY, so it's safe to remove const qualifier
   return rd_kafka_produce(rd_kafka_topic_, RD_KAFKA_PARTITION_UA,
                           RD_KAFKA_MSG_F_COPY, const_cast<void*>(payload), len,
                           key, keylen, NULL) == 0;
