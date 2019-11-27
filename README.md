@@ -184,4 +184,24 @@ See examples in [C examples](c/examples/)，[C++ examples](cxx/examples/)，[Go 
 
 ## CONFIGURATION
 
-[kafka configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION)
+The configuration file is in [INI](https://en.wikipedia.org/wiki/INI_file) format:
+
+```ini
+[global]
+
+[topic]
+
+[sdk]
+```
+
+See [rdkafka 1.0.x configuration](https://github.com/edenhill/librdkafka/blob/1.0.x/CONFIGURATION.md) for *global* and *topic* configurations, and [sdk configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION) for *sdk* configuration.
+
+Normally kafkabridge works with an empty configuration file, but if your broker version < 0.10.0.0, you must specify api.version-related configuration parameters, see [broker version compatibility](https://github.com/edenhill/librdkafka/blob/master/INTRODUCTION.md#broker-version-compatibility).
+
+eg. for broker 0.9.0.1, following configurations are necessary:
+
+```ini
+[global]
+api.version.request=false
+broker.version.fallback=0.9.0.1
+```

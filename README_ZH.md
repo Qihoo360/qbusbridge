@@ -182,7 +182,27 @@ int main(int argc, char* argv[]) {
 
 ## 配置
 
-[kafkabridge具体配置](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION_ZH)
+配置文件是[INI](https://en.wikipedia.org/wiki/INI_file)格式:
+
+```ini
+[global]
+
+[topic]
+
+[sdk]
+```
+
+*global*和*topic*配置见[rdkafka 1.0.x configuration](https://github.com/edenhill/librdkafka/blob/1.0.x/CONFIGURATION.md)，*sdk*配置见[sdk configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION_ZH)。
+
+通常情况下kafkabridge使用空配置文件即可工作，但是如果broker版本低于0.10.0.0，必须添加api.version相关的配置，见[broker version compatibility](https://github.com/edenhill/librdkafka/blob/master/INTRODUCTION.md#broker-version-compatibility).
+
+例如，对0.9.0.1版本的broker，必须添加以下配置：
+
+```ini
+[global]
+api.version.request=false
+broker.version.fallback=0.9.0.1
+```
 
 ## QQ 群 : 876834263
 ![](https://github.com/Qihoo360/kafkabridge/blob/master/kafkabridge.png)
