@@ -19,9 +19,11 @@ Ensure your system has boost (>= 1.41), cmake (>= 2.8) and swig (>= 3.0.12) inst
 #### git clone:
 git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 
-### 1. Compile rdkafka
+### 1. Install submodules
 
-Navigate to the `cxx` directory and run `./build_librdkafka.sh`, you'll get `librdkafka.a` in `thirdparts/librdkafka/src` subdirectory.
+Run `./build_dependencies.sh`.
+
+It will automatically download submodules and install them to `cxx/thirdparts/local` where `CMakeLists.txt` finds headers and libraries.
 
 ### 2. Build SDK
 

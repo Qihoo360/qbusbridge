@@ -19,9 +19,11 @@
 
 git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 
-### 1. 编译rdkafka
+### 1. 安装子模块
 
-进入`cxx`目录，执行`./build_librdkafka.sh`，在`thirdparts/librdkafka/src`子目录下会生成`librdkafka.a`。
+运行`./build_dependencies.sh`。
+
+它会自动下载子模块，并将其安装到`cxx/thirdparts/local`，即`CMakeLists.txt`查找头文件和库文件的目录。
 
 ### 2. 编译SDK
 
