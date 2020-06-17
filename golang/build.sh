@@ -2,28 +2,29 @@
 set -o errexit
 cd `dirname $0`
 
-
-COMMAND="swig -go -c++ -cgo -intgosize 64 -o qbus_wrap.cxx qbus.i"
-echo "Generate swig interface files ..."
+mkdir -p src
+COMMAND="swig -go -c++ -cgo -intgosize 64 -o src/qbus_wrap.cxx qbus.i"
 echo "$ $COMMAND"
 eval $COMMAND
 
-rm -rf build_go
-mkdir build_go
+mkdir -p build_go
 
 # TODO: set your own c/c++ compiler
 export CC=/usr/bin/gcc
 export CXX=/usr/bin/g++
 
+SOURCES=$PWD/src/qbus_wrap.cxx
 cd build_go
-cmake ..
+cmake ../../cxx/src -DLIBNAME=QBus_go -DSOURCES=$SOURCES
 make
 cd ../
+
+mv ./lib/release/libQBus_go.so .
 
 rm -rf ./examples/src
 mkdir -p ./gopath/src/qbus
 cp libQBus_go.so ./gopath/src/qbus
-cp qbus.go ./gopath/src/qbus
+cp src/qbus.go ./gopath/src/qbus
 
 while true; do
     echo -n "Use go module for examples? [Y/n]: "
@@ -34,17 +35,21 @@ while true; do
             export GO111MODULE=on
             mkdir -p examples/qbus
             cp libQBus_go.so ./examples/qbus
-            cp qbus.go ./examples/qbus
+            cp src/qbus.go ./examples/qbus
 
-            cd examples && go mod init examples
+            pushd examples && go mod init examples
             echo "
 require qbus v1.0.0
 
 replace qbus => ./qbus" >> go.mod
-            cd qbus && go mod init qbus
+            pushd qbus && go mod init qbus
+            popd
+            popd
         fi
         break
     else
         echo "[ERROR] invalid input: $ANSWER!"
     fi
 done
+
+rm libQBus_go.so

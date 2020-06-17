@@ -2,6 +2,10 @@
 set -o errexit
 cd `dirname $0`
 
+# TODO: set your own c/c++ compiler
+export CC=/usr/bin/gcc
+export CXX=/usr/bin/g++
+
 PHP_VERSION=`php-config --version`
 echo "PHP version: $PHP_VERSION"
 
@@ -17,21 +21,22 @@ case ${PHP_VERSION:0:1} in
     exit 1
 esac
 
-swig -$PHP_VERSION -cppext cxx -c++ -o qbus_wrap.cxx qbus.i
+mkdir -p src
+swig -$PHP_VERSION -cppext cxx -c++ -o src/qbus_wrap.cxx qbus.i
 
-PHP_INCLUDES=`php-config --includes`
-echo "PHP includes: $PHP_INCLUDES"
+PHP_INCLUDES=$(php-config --includes | sed 's/ /;/g' | sed 's/-I//g')
+echo "PHP_INCLUDES: $PHP_INCLUDES"
 
+SOURCES=$PWD/src/qbus_wrap.cxx
 mkdir -p build
 rm -rf build/*
 cd build
-
-# TODO: set your own c/c++ compiler
-export CC=/usr/bin/gcc
-export CXX=/usr/bin/g++
-
-cmake .. -DPHP_INCLUDE_DIRS="$PHP_INCLUDES"
+cmake ../../cxx/src \
+    -DSOURCES=$SOURCES \
+    -DEXTRA_INCLUDE_DIRS="$PHP_INCLUDES" \
+    -DCMAKE_CXX_FLAGS="-DNOT_USE_CONSUMER_CALLBACK"
 make
-
 cd -
-mv libQBus_php.so qbus.so
+mv lib/release/libQBus.so qbus.so
+mv qbus.so examples/
+cp ./src/qbus.php .
