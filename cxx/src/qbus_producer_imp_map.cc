@@ -11,6 +11,7 @@ QbusProducerImpMap::~QbusProducerImpMap() {
     if (it->second) {
       it->second->Uninit();
       delete it->second;
+      INFO("Uninit producer of " << it->first);
     }
   }
   LUtil::Logger::uninit();

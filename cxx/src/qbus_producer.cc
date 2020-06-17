@@ -19,10 +19,23 @@
 namespace qbus {
 
 #ifdef NOT_USE_CONSUMER_CALLBACK
-typedef std::map<std::string, QbusProducerImp*> BUFFER;
 
+// NOTE: WTF is `Rmtx` and `Rmb`? Don't ask me, ask who wrote these f**king
+// s**t! I could only guess `mtx` is for `mutex`, `b` is for `buffer`, so what
+// is `R` and `mb`?                                       by BewareMyPower
+// Well, it's an optimization for PHP FPM process.
+// `kRmb` is a global map:
+//   Key: The unique identifier of producer, which is brokers+topic+logname
+//   Value: the producer
+// In a PHP FPM process, every time a producer called `init()`, it would found
+// the producer associated with the key. Therefore for producers with the same
+// identifier, the `init()` would be called only once, which means the
+// connections would be reused during the FPM process' lifetime. When the PHP
+// FPM process terminated, the instance what `kRmb` points to destructed and
+// called `Uninit()` of each producer.
 static pthread_mutex_t kRmtx = PTHREAD_MUTEX_INITIALIZER;
-static QbusProducerImpMap::DataType* kRmb = QbusProducerImpMap::instance();
+typedef QbusProducerImpMap::DataType BUFFER;
+static BUFFER* kRmb = QbusProducerImpMap::instance();
 #endif
 //----------------------------------------------------------------------
 QbusProducerImp::QbusProducerImp()
@@ -480,9 +493,6 @@ bool QbusProducer::init(const std::string& broker_list,
 
 #ifdef NOT_USE_CONSUMER_CALLBACK
   pthread_mutex_lock(&kRmtx);
-  if (NULL == kRmb) {
-    kRmb = new BUFFER;
-  }
 
   std::string key = broker_list + topic_name + config_path;
   BUFFER::iterator i = kRmb->find(key);
@@ -493,10 +503,9 @@ bool QbusProducer::init(const std::string& broker_list,
                                     config_path);
       if (rt) {
         kRmb->insert(BUFFER::value_type(key, qbus_producer_imp_));
-        INFO(__FUNCTION__ << " | Procuder init is OK!");
+        INFO("Insert producer of " << key);
       } else {
         delete qbus_producer_imp_;
-        ERROR(__FUNCTION__ << " | Failed to init");
       }
     }
     pthread_mutex_unlock(&kRmtx);
