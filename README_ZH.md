@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
 [sdk]
 ```
 
-*global*和*topic*配置见[rdkafka 1.0.x configuration](https://github.com/edenhill/librdkafka/blob/1.0.x/CONFIGURATION.md)，*sdk*配置见[sdk configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION_ZH)。
+*global*和*topic*配置见[rdkafka 1.0.x configuration](https://github.com/edenhill/librdkafka/blob/1.0.x/CONFIGURATION.md)，*sdk*配置见[sdk configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION_ZH.md)。
 
 通常情况下kafkabridge使用空配置文件即可工作，但是如果broker版本低于0.10.0.0，必须添加api.version相关的配置，见[broker version compatibility](https://github.com/edenhill/librdkafka/blob/master/INTRODUCTION.md#broker-version-compatibility).
 

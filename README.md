@@ -194,7 +194,7 @@ The configuration file is in [INI](https://en.wikipedia.org/wiki/INI_file) forma
 [sdk]
 ```
 
-See [rdkafka 1.0.x configuration](https://github.com/edenhill/librdkafka/blob/1.0.x/CONFIGURATION.md) for *global* and *topic* configurations, and [sdk configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION) for *sdk* configuration.
+See [rdkafka 1.0.x configuration](https://github.com/edenhill/librdkafka/blob/1.0.x/CONFIGURATION.md) for *global* and *topic* configurations, and [sdk configuration](https://github.com/Qihoo360/kafkabridge/blob/master/CONFIGURATION.md) for *sdk* configuration.
 
 Normally kafkabridge works with an empty configuration file, but if your broker version < 0.10.0.0, you must specify api.version-related configuration parameters, see [broker version compatibility](https://github.com/edenhill/librdkafka/blob/master/INTRODUCTION.md#broker-version-compatibility).
 
