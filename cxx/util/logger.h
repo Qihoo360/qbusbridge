@@ -13,12 +13,12 @@
 
 namespace LUtil {
 
-#define DEBUG(msg)                                                    \
-  do {                                                                \
-    if (LUtil::Logger::instance()) {                                  \
-      LOG4CPLUS_DEBUG(*LUtil::Logger::instance(),                     \
-                      FILE_AND_LINE << LOG4CPLUS_TEXT(msg));          \
-    }                                                                 \
+#define DEBUG(msg)                                           \
+  do {                                                       \
+    if (LUtil::Logger::instance()) {                         \
+      LOG4CPLUS_DEBUG(*LUtil::Logger::instance(),            \
+                      FILE_AND_LINE << LOG4CPLUS_TEXT(msg)); \
+    }                                                        \
   } while (0);
 
 #define INFO(msg)                                           \
