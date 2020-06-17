@@ -18,8 +18,6 @@
 //------------------------------------------------------------
 namespace qbus {
 
-static int kKafkaDestroyTime = 5;
-
 QbusConsumerImp::QbusConsumerImp(const std::string& broker_list
 #ifndef NOT_USE_CONSUMER_CALLBACK
                                  ,
@@ -34,7 +32,7 @@ QbusConsumerImp::QbusConsumerImp(const std::string& broker_list
       enable_rdkafka_logger_(false),
       is_auto_commit_offset_(true),
       is_user_manual_commit_offset_(false),
-      is_force_destroy_(false),
+      force_terminate_(false),
       last_commit_ms_(0),
       consumer_poll_time_(RD_KAFKA_CONSUMER_POLL_TIMEOUT_MS),
       manual_commit_time_(RD_KAFKA_SDK_MANUAL_COMMIT_TIME_DEFAULT_MS),
@@ -169,13 +167,12 @@ bool QbusConsumerImp::InitRdKafkaConfig() {
 
       // set whether to force destroy in Stop() if user manual commit offset
       std::string force_destroy = config_loader_.GetSdkConfig(
-          RD_KAFKA_SDK_FORCE_DESTROY, RD_KAFKA_SDK_FORCE_DESTROY_DEFAULT);
-      if (0 == strncasecmp(force_destroy.c_str(),
-                           RD_KAFKA_SDK_FORCE_DESTROY_DEFAULT,
-                           force_destroy.length())) {
-        is_force_destroy_ = false;
+          RD_KAFKA_SDK_CONSUMER_FORCE_TERMINATE, "false");
+      if (0 ==
+          strncasecmp(force_destroy.c_str(), "false", force_destroy.length())) {
+        force_terminate_ = false;
       } else {
-        is_force_destroy_ = true;
+        force_terminate_ = true;
       }
 
       // get whether user manual commit offset and if use use manual commit
@@ -337,7 +334,7 @@ void QbusConsumerImp::Stop() {
                     << " | is_auto_commit_offset:" << is_auto_commit_offset_
                     << " | is_user_manual_commit_offset:"
                     << is_user_manual_commit_offset_ << " | is_force_destroy:"
-                    << is_force_destroy_ << " | wait destroy msgs:"
+                    << force_terminate_ << " | wait destroy msgs:"
                     << wait_destroy_msgs_for_uncommit_.size());
 
   if (start_flag_) {
@@ -370,7 +367,8 @@ void QbusConsumerImp::Stop() {
   INFO(__FUNCTION__ << " | Starting destroy rdkafka...");
 
   if (NULL != rd_kafka_handle_) {
-    if (is_user_manual_commit_offset_ && is_force_destroy_) {
+    if (force_terminate_) {
+      WARNING(__FUNCTION__ << " | Consumer force terminate")
     } else {
       rd_kafka_destroy(rd_kafka_handle_);
     }
@@ -379,7 +377,7 @@ void QbusConsumerImp::Stop() {
 
   INFO(__FUNCTION__ << " | Starting wait destroyed rdkafka...");
   /* Let background threads clean up and terminate cleanly. */
-  int run = kKafkaDestroyTime;
+  int run = 3;
   while (run-- > 0 && rd_kafka_wait_destroyed(1000) == -1) {
     DEBUG(__FUNCTION__ << " | Waiting for librdkafka to decommission");
   }

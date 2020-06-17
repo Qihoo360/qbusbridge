@@ -35,7 +35,9 @@ QbusProducerImp::QbusProducerImp()
       broker_list_(""),
       is_sync_send_(false),
       is_init_(false),
-      is_record_msg_for_send_failed_(false) {}
+      is_record_msg_for_send_failed_(false),
+      flush_timeout_ms_(3000),
+      force_terminate_(false) {}
 
 QbusProducerImp::~QbusProducerImp() {}
 
@@ -80,20 +82,18 @@ void QbusProducerImp::Uninit() {
 
   INFO(__FUNCTION__ << " | Starting uninit...");
 
-  if (NULL != rd_kafka_handle_ && NULL != rd_kafka_topic_) {
-    int current_poll_time = 0;
-    while (rd_kafka_outq_len(rd_kafka_handle_) > 0) {
-      rd_kafka_poll(rd_kafka_handle_, RD_KAFKA_POLL_TIMIE_OUT_MS);
-      if (is_sync_send_ &&
-          current_poll_time++ >= RD_KAFKA_SYNC_SEND_UINIT_POLL_TIME) {
-        break;
-      }
-    }
-
+  if (rd_kafka_topic_) {
     rd_kafka_topic_destroy(rd_kafka_topic_);
     rd_kafka_topic_ = NULL;
+  }
 
-    rd_kafka_destroy(rd_kafka_handle_);
+  if (rd_kafka_handle_) {
+    rd_kafka_flush(rd_kafka_handle_, flush_timeout_ms_);
+    if (!force_terminate_) {
+      rd_kafka_destroy(rd_kafka_handle_);
+    } else {
+      WARNING(__FUNCTION__ << " | Producer force terminate");
+    }
     rd_kafka_handle_ = NULL;
   }
 
@@ -389,6 +389,25 @@ bool QbusProducerImp::InitRdKafkaConfig() {
         QbusHelper::SetRdKafkaConfig(
             rd_kafka_conf_, RD_KAFKA_CONFIG_STATISTICS_INTERVAL_MS,
             RD_KAFKA_CONFIG_STATISTICS_INTERVAL_MS_DEFAULT);
+      }
+
+      std::string flush_timeout_ms_str = config_loader_.GetSdkConfig(
+          RD_KAFKA_SDK_FLUSH_TIMEOUT_MS, RD_KAFKA_SDK_FLUSH_TIMEOUT_MS_DEFAULT);
+      flush_timeout_ms_ =
+          static_cast<int>(strtol(flush_timeout_ms_str.c_str(), NULL, 10));
+      if (flush_timeout_ms_ < 0) {
+        WARNING(RD_KAFKA_SDK_FLUSH_TIMEOUT_MS << " is " << flush_timeout_ms_str
+                                              << " (< 0), set it to 0");
+        flush_timeout_ms_ = 0;
+      }
+
+      std::string force_terminate_str = config_loader_.GetSdkConfig(
+          RD_KAFKA_SDK_PRODUCER_FORCE_TERMINATE, "false");
+      if (0 == strncasecmp(force_terminate_str.c_str(), "false",
+                           force_terminate_str.length())) {
+        force_terminate_ = false;
+      } else {
+        force_terminate_ = true;
       }
 
       std::string sync_send = config_loader_.GetSdkConfig(

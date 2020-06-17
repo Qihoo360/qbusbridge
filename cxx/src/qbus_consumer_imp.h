@@ -78,7 +78,7 @@ class QbusConsumerImp {
   bool enable_rdkafka_logger_;
   bool is_auto_commit_offset_;
   bool is_user_manual_commit_offset_;
-  bool is_force_destroy_;
+  bool force_terminate_;
 
   long last_commit_ms_;
   long long consumer_poll_time_;

@@ -56,6 +56,9 @@ class QbusProducerImp {
   bool is_sync_send_;
   bool is_init_;
   bool is_record_msg_for_send_failed_;
+
+  int flush_timeout_ms_;
+  bool force_terminate_;
 };
 
 }  // namespace qbus
