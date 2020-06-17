@@ -55,6 +55,7 @@ SET(PROJECT_ALL_FILES
     ./qbus_consumer_imp.cc
     ./qbus_consumer.cc
     ./qbus_producer.cc
+    ./qbus_producer_imp_map.cc
     ./qbus_topic_partition_set.cc
     ./qbus_rdkafka.cc
     )

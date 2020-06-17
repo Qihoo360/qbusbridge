@@ -1,6 +1,6 @@
 #include "qbus_producer.h"
 
-#include <strings.h>
+#include <string.h>
 
 #include <iostream>
 #include <map>
@@ -12,6 +12,7 @@
 #include "qbus_constant.h"
 #include "qbus_helper.h"
 #include "qbus_producer_imp.h"
+#include "qbus_producer_imp_map.h"
 #include "qbus_rdkafka.h"
 #include "qbus_record_msg.h"
 //----------------------------------------------------------------------
@@ -21,7 +22,7 @@ namespace qbus {
 typedef std::map<std::string, QbusProducerImp*> BUFFER;
 
 static pthread_mutex_t kRmtx = PTHREAD_MUTEX_INITIALIZER;
-static BUFFER* kRmb;
+static QbusProducerImpMap::DataType* kRmb = QbusProducerImpMap::instance();
 #endif
 //----------------------------------------------------------------------
 QbusProducerImp::QbusProducerImp()
@@ -523,20 +524,6 @@ bool QbusProducer::produce(const char* data, size_t data_len,
   }
 
   return rt;
-}
-
-static __attribute__((destructor)) void end() {
-#ifdef NOT_USE_CONSUMER_CALLBACK
-  if (kRmb != NULL) {
-    for (BUFFER::iterator i = kRmb->begin(); i != kRmb->end(); ++i) {
-      i->second->Uninit();
-      delete i->second;
-    }
-
-    delete kRmb;
-  }
-#endif
-  LUtil::Logger::uninit();
 }
 
 }  // namespace qbus
