@@ -38,7 +38,7 @@ void Logger::init(LOG_LEVEL level, const char* fileName, bool outputConsole) {
     }
 
     std::auto_ptr<log4cplus::Layout> layout(new log4cplus::PatternLayout(
-        "[%p] [%D{%m/%d/%y %H:%M:%S,%q}] [%t] [%l] - %m %n"));
+        "[%p] [%D{%m/%d/%y %H:%M:%S,%q}] [%t] %m %n"));
     if (NULL != layout.get()) {
       log4cplus::SharedAppenderPtr fileAppender(
           new log4cplus::RollingFileAppender(fileName, 100 * 1024 * 1024));
@@ -55,8 +55,7 @@ void Logger::init(LOG_LEVEL level, const char* fileName, bool outputConsole) {
         if (NULL != consoleAppender.get()) {
           consoleAppender->setName("console log");
           std::auto_ptr<log4cplus::Layout> layout(new log4cplus::PatternLayout(
-              //"[%p] [%D{%m/%d/%y %H:%M:%S:%s}] [%t] [%l] - %m %n"));
-              "[%p] [%D{%m/%d/%y %H:%M:%S,%q}] [%t] [%l] - %m %n"));
+              "[%p] [%D{%m/%d/%y %H:%M:%S,%q}] [%t] %m %n"));
           if (NULL != layout.get()) {
             consoleAppender->setLayout(layout);
           }

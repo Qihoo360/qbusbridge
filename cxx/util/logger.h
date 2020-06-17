@@ -3,38 +3,46 @@
 
 #include <log4cplus/logger.h>
 #include <log4cplus/loggingmacros.h>
+#include <string.h>
 
-//---------------------------------------------
+#define __FILENAME__ \
+  (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define FILE_AND_LINE                                    \
+  LOG4CPLUS_TEXT("[") << __FILENAME__ << ":" << __LINE__ \
+                      << LOG4CPLUS_TEXT("] - ")
+
 namespace LUtil {
-#define TRACE(msg)                                      \
-  do {                                                  \
-    if (NULL != LUtil::Logger::instance()) {            \
-      LOG4CPLUS_TRACE(*LUtil::Logger::instance(), msg); \
-    }                                                   \
+
+#define DEBUG(msg)                                                    \
+  do {                                                                \
+    if (LUtil::Logger::instance()) {                                  \
+      LOG4CPLUS_DEBUG(*LUtil::Logger::instance(),                     \
+                      FILE_AND_LINE << LOG4CPLUS_TEXT(msg));          \
+    }                                                                 \
   } while (0);
-#define INFO(msg)                                      \
-  do {                                                 \
-    if (NULL != LUtil::Logger::instance()) {           \
-      LOG4CPLUS_INFO(*LUtil::Logger::instance(), msg); \
-    }                                                  \
+
+#define INFO(msg)                                           \
+  do {                                                      \
+    if (LUtil::Logger::instance()) {                        \
+      LOG4CPLUS_INFO(*LUtil::Logger::instance(),            \
+                     FILE_AND_LINE << LOG4CPLUS_TEXT(msg)); \
+    }                                                       \
   } while (0);
-#define DEBUG(msg)                                      \
-  do {                                                  \
-    if (NULL != LUtil::Logger::instance()) {            \
-      LOG4CPLUS_DEBUG(*LUtil::Logger::instance(), msg); \
-    }                                                   \
+
+#define WARNING(msg)                                        \
+  do {                                                      \
+    if (LUtil::Logger::instance()) {                        \
+      LOG4CPLUS_WARN(*LUtil::Logger::instance(),            \
+                     FILE_AND_LINE << LOG4CPLUS_TEXT(msg)); \
+    }                                                       \
   } while (0);
-#define WARNING(msg)                                   \
-  do {                                                 \
-    if (NULL != LUtil::Logger::instance()) {           \
-      LOG4CPLUS_WARN(*LUtil::Logger::instance(), msg); \
-    }                                                  \
-  } while (0);
-#define ERROR(msg)                                      \
-  do {                                                  \
-    if (NULL != LUtil::Logger::instance()) {            \
-      LOG4CPLUS_ERROR(*LUtil::Logger::instance(), msg); \
-    }                                                   \
+
+#define ERROR(msg)                                           \
+  do {                                                       \
+    if (LUtil::Logger::instance()) {                         \
+      LOG4CPLUS_ERROR(*LUtil::Logger::instance(),            \
+                      FILE_AND_LINE << LOG4CPLUS_TEXT(msg)); \
+    }                                                        \
   } while (0);
 
 class Logger {
@@ -81,5 +89,6 @@ class Logger {
   Logger(const Logger&);
   Logger& operator=(const Logger&);
 };
+
 }  // namespace LUtil
 #endif  //#ifndef RRRTC_LOGGER_HXX
