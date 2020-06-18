@@ -38,11 +38,13 @@ C的SDK依赖于C++的SDK，因此得先编译C++ SDK。
 #### Go
 进入`golang`目录，执行`./build.sh`，在`gopath/src/qbus`子目录下会生成`qbus.go`和`libQBus_go.so`。
 
+如果启用了 go module，`qbus.go` 和 `libQBus_go.so` 会放在 `examples/qbus` 子目录，相应的 `go.mod` 会生成在 `examples` 和 `examples/qbus` 子目录中。
+
 #### Python
-进入`python`目录，执行`./build.sh`，在当前目录会生成`qbus.py`和`_qbus.so`。
+进入`python`目录，执行`./build.sh`，在 `examples` 目录会生成`qbus.py`和`_qbus.so`。
 
 #### PHP
-进入`php`目录，执行`./build.sh`，在当前目录会生成`qbus.so`和`qbus.php`。
+进入`php`目录，执行`./build.sh`，生成的 `qbus.php` 在当前目录，`qbus.so` 在 `examples` 目录。
 
 ### 3. 编译示例程序
 

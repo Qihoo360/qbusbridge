@@ -36,14 +36,15 @@ Navigate to the `cxx` directory and run `./build.sh <BUILD_TYPE>` (`<BUILD_TYPE`
 Then navigate to the `c` directory and run `./build.sh <BUILD_TYPE>`, you'll get `libQBus_C.so` in `c/lib/<BUILD_TYPE>` directory.
 
 #### Go
-Navigate to the `golang` directory and run `./build.sh`, you'll get `qbus.py` and `libQBus_go.so` in `gopath/src/qbus` subdirectory.
+Navigate to the `golang` directory and run `./build.sh`, you'll get `qbus.go` and `libQBus_go.so` in `gopath/src/qbus` subdirectory.
+
+If go module was used, the `qbus.go` and `libQbus_go.so` will be put in `examples/qbus` subdirectory. Relative `go.mod` will be generated in `examples` and `examples/qbus` subdirectories.
 
 #### Python
-Navigate to the `python` directory and run `./build.sh`, you'll get `qbus.py` and `_qbus.so` in the current directory.
-
+Navigate to the `python` directory and run `./build.sh`, you'll get `qbus.py` and `_qbus.so` in `examples` subdirectory.
 
 #### PHP
-Navigate to the `php` directory and run `build.sh`, you'll get `qbus.so` and `qbus.php` in the current directory.
+Navigate to the `php` directory and run `build.sh`, you'll get `qbus.php` in the current directory and `qbus.so` in `examples` subdirectory.
 
 ### 3. Build examples
 
