@@ -60,6 +60,7 @@ class Logger {
   static void init(LOG_LEVEL level, const char* fileName, bool outputConsole);
   static void setLogLevel(const std::string& log_level);
   static void uninit() {
+    sInit = false;
     if (NULL != sLogger) {
       delete sLogger;
       sLogger = NULL;

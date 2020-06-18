@@ -7,14 +7,15 @@ namespace qbus {
 QbusProducerImpMap::QbusProducerImpMap() {}
 
 QbusProducerImpMap::~QbusProducerImpMap() {
+  if (data_.size() > 0) {
+    LUtil::Logger::uninit();
+  }
   for (DataType::iterator it = data_.begin(); it != data_.end(); ++it) {
     if (it->second) {
       it->second->Uninit();
       delete it->second;
-      INFO("Uninit producer of " << it->first);
     }
   }
-  LUtil::Logger::uninit();
 }
 
 }  // namespace qbus
