@@ -159,15 +159,24 @@ std::string QbusHelper::FormatTopicPartitionList(
 
 void QbusHelper::RdKafkaLogger(const rd_kafka_t* rk, int level, const char* fac,
                                const char* buf) {
-  time_t timep;
-  time(&timep);
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
 
-  std::ofstream out;
-  out.open(kRdkafkaLog, std::ios::out | std::ios::app);
-  out << asctime(gmtime(&timep)) << " | RD_KAFKA_LOG"
-      << " | level: " << level << " | fac: " << (NULL != fac ? fac : "")
-      << " | msg: " << (NULL != buf ? buf : "") << std::endl;
-  out.close();
+  char msgbuf[2048];
+  size_t n = strftime(msgbuf, sizeof(msgbuf), "%F %T", localtime(&tv.tv_sec));
+  snprintf(msgbuf + n, sizeof(msgbuf) - n,
+           "%.03ld level: %d | fac: %s | msg: %s",
+           static_cast<long>(tv.tv_usec) / 1000, level, (fac ? fac : ""),
+           (buf ? buf : ""));
+
+  // TODO: Use a singleton to write log, avoid frequent fopen() and fclose()
+  FILE* fp = fopen("./rdkafka.log", "a");
+  if (!fp) {
+    // TODO: print error msg
+    return;
+  }
+  fprintf(fp, "%s\n", msgbuf);
+  fclose(fp);
 }
 
 void QbusHelper::SetClientId(rd_kafka_conf_t* rd_kafka_conf,
