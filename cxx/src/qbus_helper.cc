@@ -165,7 +165,7 @@ void QbusHelper::RdKafkaLogger(const rd_kafka_t* rk, int level, const char* fac,
   char msgbuf[2048];
   size_t n = strftime(msgbuf, sizeof(msgbuf), "%F %T", localtime(&tv.tv_sec));
   snprintf(msgbuf + n, sizeof(msgbuf) - n,
-           "%.03ld level: %d | fac: %s | msg: %s",
+           ".%03ld level: %d | fac: %s | msg: %s",
            static_cast<long>(tv.tv_usec) / 1000, level, (fac ? fac : ""),
            (buf ? buf : ""));
 
