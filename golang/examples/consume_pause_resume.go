@@ -1,4 +1,5 @@
 // qbus暂停/恢复消费功能示例：对每个topic，每次消费一个批次(固定数量)的消息，就会暂停消费该topic一段时间，之后恢复消费。
+// 仅支持 Kafka 模式
 package main
 
 import (
@@ -48,8 +49,7 @@ func (p *GoCallback) DeliveryMsg(topic string, msg string, msgLen int64) {
 	}
 
 	p.messageCountMap[topic] = id
-	// NOTE: 如果消息中含有字节0（对应C字符串终止符），则转换成string时会截断，导致len(msg)<msgLen
-	fmt.Printf("Topic:%s id:%d | msg[%d]:%s\n", topic, id, msgLen, msg)
+	fmt.Printf("Topic:%s id:%v | msg:%s\n", topic, id, string(msg[0:msgLen]))
 
 	if id%messageBatchSize == 0 {
 		// 若消息消息数量构成了一个批次，暂停消费

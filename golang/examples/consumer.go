@@ -5,73 +5,75 @@ import (
 	"os"
 	"os/signal"
 	"qbus"
-	"time"
 )
 
-//var qbus_consumer qbus.QbusConsumer = nil
-var qbus_consumer = qbus.NewQbusConsumer()
-
+// GoCallback 消费者的回调，可携带用户自定义数据，比如这里的 Consumer
 type GoCallback struct {
+	// 仅用于 DeliveryMsgForCommitOffset 才需要这个字段
+	Consumer qbus.QbusConsumer
 }
 
-func (p *GoCallback) DeliveryMsg(topic string, msg string, msg_len int64) {
-	//fmt.Printf("Topic:%s | msg:%s\n", topic, string(msg[0:msg_len]))
-	//fmt.Printf("Topic:%s | msg:%d\n", topic, msg_len)
-	fmt.Printf("Topic:%s | msg:%s\n", topic, msg)
+// DeliveryMsg 默认的回调函数
+func (cb *GoCallback) DeliveryMsg(topic string, msg string, msgLen int64) {
+	fmt.Printf("Topic: %s | msg: %s\n", topic, msg)
 }
 
-//纯手工提交offset, 需要在consumer.config中添加user.manual.commit.offset=true
-func (p *GoCallback) DeliveryMsgForCommitOffset(msg_info qbus.QbusMsgContentInfo) {
-	fmt.Printf("User commit offset | Topic:%s | msg:%s\n",
-		msg_info.GetTopic(),
-		msg_info.GetMsg())
-
-	qbus_consumer.CommitOffset(msg_info)
+// DeliveryMsgForCommitOffset 用户自行管理并提交 offset 或确认消息的回调函数，需要修改默认配置
+func (cb *GoCallback) DeliveryMsgForCommitOffset(info qbus.QbusMsgContentInfo) {
+	fmt.Printf("User commit offset | Topic: %s | msg: %s\n", info.GetTopic(), info.GetMsg())
+	cb.Consumer.CommitOffset(info)
 }
 
 func main() {
-	if len(os.Args) < 4 {
-		fmt.Printf("Usage: ./consumer topic_name group_name cluster_name\n")
+	if len(os.Args) < 5 {
+		fmt.Printf("Usage: ./consumer config_path topic_name group_name cluster_name\n")
 		return
 	}
 
-	fmt.Printf("topic: %s | group: %s\n", os.Args[1], os.Args[2])
+	configPath := os.Args[1]
+	topicName := os.Args[2]
+	group := os.Args[3]
+	clusterName := os.Args[4]
 
-	running := true
+	fmt.Printf("topic: %s | group: %s | cluster: %s\n", topicName, group, clusterName)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+
+	signal.Notify(sigs, os.Interrupt)
+
 	go func() {
-		for sig := range c {
-			fmt.Printf("received ctrl+c(%v)\n", sig)
-			//os.Exit(0)
-			running = false
-		}
+		sig := <-sigs
+		fmt.Println()
+		fmt.Println(sig)
+		done <- true
 	}()
 
-	callback := qbus.NewDirectorQbusConsumerCallback(&GoCallback{})
-	//qbus_consumer := qbus.NewQbusConsumer()
-	if !qbus_consumer.Init(os.Args[3],
-		"consumer.log",
-		"./consumer.config",
-		callback) {
-		fmt.Println("Failed to Init")
-		os.Exit(0)
+	var goCallback GoCallback
+	callback := qbus.NewDirectorQbusConsumerCallback(&goCallback)
+	defer qbus.DeleteQbusConsumerCallback(callback)
+
+	consumer := qbus.NewQbusConsumer()
+	defer qbus.DeleteQbusConsumer(consumer)
+
+	goCallback.Consumer = consumer
+
+	if !consumer.Init(clusterName, "consumer.log", configPath, callback) {
+		fmt.Println("Init failed")
+		os.Exit(1)
 	}
 
-	if !qbus_consumer.SubscribeOne(os.Args[2], os.Args[1]) {
-		fmt.Println("Failed to SubscribeOne")
-		os.Exit(0)
+	if !consumer.SubscribeOne(group, topicName) {
+		fmt.Println("SubscribeOne failed")
+		os.Exit(2)
 	}
 
-	qbus_consumer.Start()
-
-	for running {
-		time.Sleep(1 * time.Second)
+	if !consumer.Start() {
+		fmt.Println("Start failed")
+		os.Exit(3)
 	}
 
-	qbus_consumer.Stop()
-
-	qbus.DeleteQbusConsumer(qbus_consumer)
-	qbus.DeleteDirectorQbusConsumerCallback(callback)
+	<-done
+	consumer.Stop()
+	fmt.Println("done")
 }

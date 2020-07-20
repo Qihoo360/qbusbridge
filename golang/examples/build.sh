@@ -5,13 +5,12 @@ echo '2. 要运行编译后的文件，请手动将libQbus.so的路径加入LD_L
 echo '  export LD_LIBRARY_PATH=$PWD/../gopath/src/qbus:$LD_LIBRARY_PATH'
 
 TARGETS=( \
-	consumer \
-	producer \
-	consumer_commit_in_goroutine \
+    consumer \
+    producer \
     consume_pause_resume
 )
 for TARGET in "${TARGETS[@]}"; do
-	COMMAND="go build $TARGET.go"
-	echo $COMMAND
-	eval $COMMAND
+    COMMAND="go build $TARGET.go"
+    echo $COMMAND
+    eval $COMMAND
 done

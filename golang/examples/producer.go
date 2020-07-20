@@ -10,25 +10,26 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Printf("Usage: ./producer topic_name cluster_name\n")
+	if len(os.Args) < 4 {
+		fmt.Printf("Usage: ./producer config_path topic_name cluster_name\n")
 		return
 	}
 
-	qbusProducer := qbus.NewQbusProducer()
-	defer qbus.DeleteQbusProducer(qbusProducer)
+	configPath := os.Args[1]
+	topicName := os.Args[2]
+	clusterName := os.Args[3]
 
-	if !qbusProducer.Init(os.Args[2],
-		"./producer.log",
-		"./producer.config",
-		os.Args[1]) {
-		fmt.Printf("Failed to Init")
-		return
+	producer := qbus.NewQbusProducer()
+	defer qbus.DeleteQbusProducer(producer)
+
+	if !producer.Init(clusterName, "producer.log", configPath, topicName) {
+		fmt.Println("Init failed")
+		os.Exit(1)
 	}
-	defer qbusProducer.Uninit()
+	defer producer.Uninit()
 
-	quitChan := make(chan os.Signal, 1)
-	signal.Notify(quitChan, os.Interrupt)
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt)
 
 	go func() {
 		reader := bufio.NewReader(os.Stdin)
@@ -39,11 +40,11 @@ func main() {
 			msg, err := reader.ReadString('\n')
 			switch err {
 			case nil:
-				if !qbusProducer.Produce(msg, int64(len(msg))-1, "") {
+				if !producer.Produce(msg, int64(len(msg))-1, "") {
 					fmt.Println("Failed to Produce")
 				}
 			case io.EOF:
-				quitChan <- os.Interrupt
+				done <- os.Interrupt
 				running = false
 			default:
 				panic(err)
@@ -51,6 +52,6 @@ func main() {
 		}
 	}()
 
-	<-quitChan
+	<-done
 	fmt.Println("%% Done.")
 }
