@@ -733,14 +733,14 @@ void QbusConsumerImp::rdkafka_rebalance_cb(
 
   switch (err) {
     case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS: {
-      DEBUG(__FUNCTION__ << " | rebalance result OK: "
+      INFO(__FUNCTION__ << " | rebalance result OK: "
                          << QbusHelper::FormatTopicPartitionList(partitions));
       rd_kafka_assign(rk, partitions);
       consumer_imp->topic_partition_set_.init(partitions);
       consumer_imp->SetHasAssigned(true);
     } break;
     case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS: {
-      DEBUG(__FUNCTION__ << " | rebalance result revoke | msg: "
+      INFO(__FUNCTION__ << " | rebalance result revoke | msg: "
                          << rd_kafka_err2str(err) << " | "
                          << QbusHelper::FormatTopicPartitionList(partitions));
       if (!consumer_imp->is_auto_commit_offset_) {
