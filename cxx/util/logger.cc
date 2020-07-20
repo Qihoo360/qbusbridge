@@ -8,6 +8,8 @@
 
 using namespace LUtil;
 
+extern const char* version;
+
 const char* DEFAULT_LOG_FILE_NAME = "__lutil_logger__.log";
 const char* LOGGER_NAME = "__lutil_logger__";
 //---------------------------------------------
@@ -67,6 +69,7 @@ void Logger::init(LOG_LEVEL level, const char* fileName, bool outputConsole) {
       sLogger->setLogLevel(log4cplus::LogLevel(level));
 
       sInit = true;
+      INFO("qbus version: " << version);
     }
   }
 }

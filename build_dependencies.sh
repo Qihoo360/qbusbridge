@@ -2,6 +2,9 @@
 set -o errexit
 cd `dirname $0`
 
+VERSION=$(cat VERSION)
+echo "const char* version = \"$VERSION\";" > ./cxx/util/version.cc
+
 # init and download submodules
 git submodule init
 git submodule update
@@ -18,11 +21,6 @@ cd ./cxx/thirdparts/librdkafka
 make
 make install
 
-#sed -i "s/^#define HAVE_ATOMICS_32.*/ /g" config.h
-#sed -i "s/^#define HAVE_ATOMICS_32_ATOMIC.*/ /g" config.h
-#sed -i "s/^#define HAVE_ATOMICS_64.*/ /g" config.h
-#sed -i "s/^#define HAVE_ATOMICS_64_ATOMIC.*/ /g" config.h
-
 cd -
 
 # build log4cplus static library and support linked in a shared library
@@ -31,3 +29,5 @@ cd ./cxx/thirdparts/log4cplus
 ./configure --prefix=$INSTALL_DIR --enable-static --with-pic
 make
 make install
+
+cd -

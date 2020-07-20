@@ -22,3 +22,5 @@ go.mod
 build_go/
 
 thirdparts/
+
+version.cc

@@ -50,6 +50,7 @@ MESSAGE(STATUS "LOG4CPLUS_LIB=${LOG4CPLUS_LIB}")
 SET(PROJECT_ALL_FILES
     ${SOURCES}
     ../util/logger.cc
+    ../util/version.cc
     ./qbus_helper.cc
     ./qbus_config.cc
     ./qbus_record_msg.cc

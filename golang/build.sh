@@ -1,6 +1,7 @@
 #/usr/bin
 set -o errexit
 cd `dirname $0`
+VERSION=$(cat ../VERSION)
 
 mkdir -p src
 COMMAND="swig -go -c++ -cgo -intgosize 64 -o src/qbus_wrap.cxx qbus.i"
@@ -39,7 +40,7 @@ while true; do
 
             pushd examples && go mod init examples
             echo "
-require qbus v1.0.0
+require qbus $VERSION
 
 replace qbus => ./qbus" >> go.mod
             pushd qbus && go mod init qbus
