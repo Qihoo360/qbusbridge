@@ -3,61 +3,61 @@
 
 require("../qbus.php");
 
-#ini_set('memory_limit', '-1');
-
 ini_set('error_reporting', E_ALL);
 
-if (count($argv) > 3)
+if (count($argv) < 5)
 {
-	$cluster = $argv[1];
-	$topic = $argv[2];
-	$group = $argv[3];
+    print "Usage: php consumer.php config_path topic_name group_name cluster_name\n";
+    exit(1);
 }
-else
-{
-	print "Invaild parameter!"."\n";
-	print "usage: php consumer.php <cluster> <topic> <group>"."\n";
-	exit(1);
-}
+
+$config = $argv[1];
+$topic = $argv[2];
+$group = $argv[3];
+$cluster = $argv[4];
+
+echo "topic: ". $topic . " | group: " . $group . " | cluster: " . $cluster;
 
 $consumer = new QbusConsumer;
-$ret = $consumer->init($cluster, "./consumer.log", "./consumer.config");
-if ($ret == false)
+if (false == $consumer->init($cluster, "./consumer.log", $config))
 {
-	print "Failed init";
-	exit(1);
+    echo "Init failed\n";
+    exit(2);
 }
 
-$ret = $consumer->subscribeOne($group, $topic);
-if ($ret == false)
+if (false == $consumer->subscribeOne($group, $topic))
 {
-	print "Failed subscribe";
-	exit(1);
+    echo "subscribeOne failed\n";
+    exit(3);
 }
 
 $run = true;
 function sig_handler($signo)
 {
-    print "stop...\n";
-	global $run;
-	$run = false;
+    global $run;
+    $run = false;
 }
 
 pcntl_signal(SIGINT, "sig_handler");
-$consumer->start();
+if (false == $consumer->start())
+{
+    echo "start failed";
+    exit(4);
+}
 
-$msg_info = new QbusMsgContentInfo;
+$info = new QbusMsgContentInfo;
 
 $count = 0;
 while ($run)
 {
     declare(ticks = 1);
-    if ($consumer->consume($msg_info))
-	{
-        echo "topic: ".$msg_info->topic." | msg: ".$msg_info->msg."\n";
+    if ($consumer->consume($info))
+    {
+        echo "topic: ".$info->topic." | msg: ".$info->msg."\n";
     }
 }
 
 $consumer->stop();
+echo "done";
 
 ?>

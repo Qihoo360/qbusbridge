@@ -4,48 +4,40 @@ declare(ticks = 1);
 
 require("../qbus.php");
 
-$run = true;
-
-function sig_handler($signo)
+if (count($argv) < 4)
 {
-	global $run;
-	$run = false;
+    echo "Usage: php producer.php config_path topic_name cluster_name\n";
+    exit(1);
 }
 
-if (count($argv) > 4)
-{
-	$cluster = $argv[1];
-	$topic = $argv[2];
-}
-else
-{
-	print "Invaild parameter!\n";
-	print "php producer.php <cluster> <topic> isSyncSend[1:sync 0:async] key[\"\" or ]\n";
-	exit(1);
-}
-
-pcntl_signal(SIGINT, "sig_handler");
+$config = $argv[1];
+$topic = $argv[2];
+$cluster = $argv[3];
 
 $producer = new QbusProducer;
-$ret = $producer->init($cluster, "./producer.log", "./producer.config", $topic);
-if ($ret == false)
+if (false == $producer->init($cluster, "./producer.log", $config, $topic))
 {
-	print "Failed init";
-	exit(1);
+    echo "Init failed\n";
+    exit(1);
 }
 
-while ($run)
-{
-	$line = fgets(STDIN);
+echo "%% Please input messages (Press Ctrl+D to exit):\n";
 
-	# trim new line
-	$line = str_replace(array("\r", "\n"), '', $line);
-    if (false == $producer->produce($line, strlen($line), $argv[4])) {
-        print "Failed to produce\n";
-        //Retry to produce
+while (true)
+{
+    $line = fgets(STDIN);
+    if (feof(STDIN)) {
+        break;
+    }
+
+    $line = str_replace(array("\r", "\n"), '', $line);
+    if (false == $producer->produce($line, strlen($line), ""))
+    {
+        echo "Failed to produce\n";
     }
 }
 
 $producer->uninit();
+echo "%% Done.\n";
 
 ?>

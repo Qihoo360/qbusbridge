@@ -37,7 +37,7 @@ class Callback(qbus.QbusConsumerCallback):
     def deliveryMsg(self, topic, msg, msg_len):
         self.msg_cnt = self.msg_cnt + 1
         # 实际场景下会保存该消息到用户自定义的数据结构中，以实现分批消费
-        print '[%d] %s | [%d] %s' % (self.msg_cnt, topic, msg_len, msg)
+        print '[%d] %s | %s' % (self.msg_cnt, topic, msg[0:msg_len])
 
         if self.msg_cnt % msg_batch_size == 0:
             topics = qbus.StringVector()

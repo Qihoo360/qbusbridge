@@ -1,90 +1,74 @@
 #include <signal.h>
 #include <unistd.h>
-
-#include <cstdlib>
 #include <iostream>
 #include <string>
-#include <vector>
-
 #include "qbus_consumer.h"
-//----------------------------------------------------
-static bool kStop = false;
-const char* kGroupName = "qbus_consumer";
-const char* kTopicName = "";
-const char* kConfigPath = "";
-const char* kClusterName = "";
 
-qbus::QbusConsumer qbus_consumer;
-class MyCallback : public qbus::QbusConsumerCallback {
+#if __cplusplus >= 201103L
+#define OVERRIDE override
+#else
+#define OVERRIDE
+#endif
+
+static void signalHandler(int) {}
+
+class Callback : public qbus::QbusConsumerCallback {
  public:
-  virtual void deliveryMsg(const std::string& topic, const char* msg,
-                           const size_t msg_len) const {
-    std::cout << "topic: " << topic << " | msg: " << std::string(msg, msg_len)
+  Callback(qbus::QbusConsumer& consumer) : consumer_(consumer) {}
+
+  void deliveryMsg(const std::string& topic, const char* msg,
+                   size_t msg_len) const OVERRIDE {
+    std::cout << "Topic: " << topic << " | msg: " << std::string(msg, msg_len)
               << std::endl;
   }
 
-  //如果想使用纯手动提交offset,需要业务自行实现下面的函数，用户可以自行保存msg_info，然后在合适的位置提交offset，在此回调中作业务处理,并且需要在consumer.config中设置user.manual.commit.offset=true,
-  //对于绝大多数应用,这个不是必需的
-  virtual void deliveryMsgForCommitOffset(
-      const qbus::QbusMsgContentInfo& msg_info) const {
-    static int count = 0;
-    std::cout << "user manual commit offset | topic: " << msg_info.topic
-              << " | msg: " << msg_info.msg << std::endl;
-    if (count == 100) {
-      qbus_consumer.commitOffset(msg_info);
-      std::cout << "tijiao\n";
-    }
-    count++;
+  // 用户自行管理并提交 offset 或确认消息的回调函数，需要修改默认配置
+  void deliveryMsgForCommitOffset(
+      const qbus::QbusMsgContentInfo& info) const OVERRIDE {
+    std::cout << "Topic: " << info.topic << " | msg: " << info.msg << std::endl;
+    consumer_.commitOffset(info);
   }
+
+ private:
+  qbus::QbusConsumer& consumer_;  // 仅用于用户手动提交
 };
 
-void Stop(int) { kStop = true; }
-
-void* simpleConsumer() {
-  MyCallback my_callback;
-  if (qbus_consumer.init(kClusterName, "./qbus_consumer_example.log",
-                         kConfigPath, my_callback)) {
-    std::vector<std::string> topics;
-    topics.push_back(kTopicName);
-    std::cout << " topic: " << kTopicName << " | group: " << kGroupName
-              << std::endl;
-    if (qbus_consumer.subscribeOne(kGroupName, kTopicName)) {
-      if (!qbus_consumer.start()) {
-        std::cout << "Failed to start" << std::endl;
-        return NULL;
-      }
-
-      while (!kStop) {
-        sleep(1);
-      }
-
-      qbus_consumer.stop();
-    } else {
-      std::cout << "Failed subscribe" << std::endl;
-    }
-  } else {
-    std::cout << "Failed init" << std::endl;
-  }
-
-  return NULL;
-}
-
 int main(int argc, char* argv[]) {
-  if (argc > 4) {
-    kTopicName = argv[1];
-    kGroupName = argv[2];
-    kConfigPath = argv[3];
-    kClusterName = argv[4];
-  } else {
-    std::cout << "Usage: ./qbus_consumer_example topic_name group_name "
-                 "config_full_path cluster_list"
-              << std::endl;
-    return 0;
+  if (argc < 5) {
+    std::cout << "Usage: " << argv[0]
+              << " config_path topic_name group_name cluster_name" << std::endl;
+    return 1;
   }
 
-  signal(SIGINT, Stop);
+  std::string config_path = argv[1];
+  std::string topic_name = argv[2];
+  std::string group = argv[3];
+  std::string cluster_name = argv[4];
 
-  simpleConsumer();
+  std::cout << "topic: " << topic_name << " | group: " << group
+            << " | cluster: " << cluster_name << std::endl;
 
+  qbus::QbusConsumer consumer;
+  Callback callback(consumer);
+
+  if (!consumer.init(cluster_name, "consumer.log", config_path, callback)) {
+    std::cout << "Init failed" << std::endl;
+    return 2;
+  }
+
+  if (!consumer.subscribeOne(group, topic_name)) {
+    std::cout << "SubscribeOne failed" << std::endl;
+    return 3;
+  }
+
+  if (!consumer.start()) {
+    std::cout << "Start failed" << std::endl;
+    return 4;
+  }
+
+  signal(SIGINT, signalHandler);
+  pause();
+  consumer.stop();
+  std::cout << "done" << std::endl;
   return 0;
 }

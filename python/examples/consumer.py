@@ -3,47 +3,49 @@ import signal
 import sys
 
 class Callback(qbus.QbusConsumerCallback):
-	def __init__(self):
-		qbus.QbusConsumerCallback.__init__(self)
+    def __init__(self):
+        qbus.QbusConsumerCallback.__init__(self)
 
-	def deliveryMsg(self, topic, msg, msg_len):
-		print msg
+    def setConsumer(self, consumer):
+        self.consumer = consumer
 
-        def deliveryMsgForCommitOffset(self, msg_info):
-                try:
-                    print msg_info.msg
-                    consumer.commitOffset(msg_info)
-                except:
-                     print sys.exc_info()
+    def deliveryMsg(self, topic, msg, msg_len):
+        print "Topic: %s | msg: %s" % (topic, msg)
 
-if (len(sys.argv) > 3):
-	cluster = sys.argv[1]
-	topic = sys.argv[2]
-	group = sys.argv[3]
-else:
-	print "Invaild parameter!"
-	print "Usage: python consumer.py <cluster> <topic> <group>"
-	sys.exit(1)
+    def deliveryMsgForCommitOffset(self, info):
+        print "User commit offset | Topic: %s | msg: %s" % (info.topic, info.msg)
+        self.consumer.CommitOffset(info)
+
+
+if len(sys.argv) < 5:
+    print "Usage: ./consumer config_path topic_name group_name cluster_name"
+    sys.exit(1)
+
+config_path = sys.argv[1]
+topic_name = sys.argv[2]
+group = sys.argv[3]
+cluster_name = sys.argv[4]
+
+print "topic: %s | group: %s | cluster: %s" % (topic_name, group, cluster_name)
 
 callback = Callback().__disown__()
-
 consumer = qbus.QbusConsumer()
-ret = consumer.init(cluster, "./consumer.log", "./consumer.config", callback)
-if ret != True:
-	print "Failed init"
-	sys.exit(1)
+callback.setConsumer(consumer)
 
-#topics = qbus.StringVector();
-#topics.push_back("test");
+if False == consumer.init(cluster_name, "consumer.log", config_path, callback):
+    print "Init failed"
+    sys.exit(2)
 
-ret = consumer.subscribeOne(group, topic)
-if ret != True:
-	print "Failed subscribe"
-	sys.exit(1)
+if False == consumer.subscribeOne(group, topic_name):
+    print "SubscribeOne failed"
+    sys.exit(3)
+
+if False == consumer.start():
+    print "Start failed"
+    sys.exit(4)
 
 try:
-	consumer.start()
-	signal.pause()
+    signal.pause()
 except KeyboardInterrupt:
-	consumer.stop()
-
+    consumer.stop()
+    print "done"
