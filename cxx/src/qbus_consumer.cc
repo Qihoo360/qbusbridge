@@ -2,8 +2,11 @@
 #include "qbus_consumer_imp.h"
 
 #include <stdexcept>
+#include "mq_type.h"
 
 #include "kafka/qbus_consumer.h"
+#include "pulsar/qbus_consumer.h"
+#include "pulsar/qbus_php_consumer.h"
 
 namespace qbus {
 
@@ -16,7 +19,18 @@ QbusConsumer::~QbusConsumer() {
 bool QbusConsumer::init(const std::string& cluster, const std::string& log_path,
                         const std::string& config_path, const QbusConsumerCallback& callback) {
     if (!imp_) {
-        imp_ = new kafka::QbusConsumer;
+        switch (mqType(config_path)) {
+            case MqType::KAFKA:
+                imp_ = new kafka::QbusConsumer;
+                break;
+            case MqType::PULSAR:
+#ifdef NOT_USE_CONSUMER_CALLBACK
+                imp_ = new pulsar::QbusPhpConsumer;
+#else
+                imp_ = new pulsar::QbusConsumer;
+#endif
+                break;
+        }
     }
     return imp_->init(cluster, log_path, config_path, callback);
 }

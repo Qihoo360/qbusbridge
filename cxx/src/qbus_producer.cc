@@ -2,8 +2,12 @@
 #include "qbus_producer_imp.h"
 
 #include <stdexcept>
+#include "mq_type.h"
 
 #include "kafka/qbus_producer.h"
+#include "pulsar/qbus_producer.h"
+#include "pulsar/qbus_php_producer.h"
+#include "pulsar/qbus_producer_config.h"
 
 namespace qbus {
 
@@ -16,7 +20,18 @@ QbusProducer::~QbusProducer() {
 bool QbusProducer::init(const std::string& cluster, const std::string& log_path,
                         const std::string& config_path, const std::string& topic) {
     if (!imp_) {
-        imp_ = new kafka::QbusProducer;
+        switch (mqType(config_path)) {
+            case MqType::KAFKA:
+                imp_ = new kafka::QbusProducer;
+                break;
+            case MqType::PULSAR:
+#ifdef NOT_USE_CONSUMER_CALLBACK
+                imp_ = new pulsar::QbusPhpProducer;
+#else
+                imp_ = new pulsar::QbusProducer;
+#endif
+                break;
+        }
     }
     return imp_->init(cluster, log_path, config_path, topic);
 }

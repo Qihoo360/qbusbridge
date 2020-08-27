@@ -26,6 +26,9 @@ set(CMAKE_PREFIX_PATH
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+find_package(Boost REQUIRED)
+message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+
 # find qbus::kafka's dependencies
 find_path(LIBRDKAFKA_INCLUDE_DIR NAMES "librdkafka/rdkafka.h")
 find_library(LIBRDKAFKA_LIB NAMES librdkafka.a)
@@ -46,6 +49,37 @@ add_definitions("-Wno-deprecated-declarations")
 message(STATUS "LOG4CPLUS_INCLUDE_DIR=${LOG4CPLUS_INCLUDE_DIR}")
 message(STATUS "LOG4CPLUS_LIB=${LOG4CPLUS_LIB}")
 
+# find qbus::pulsar's dependencies
+find_path(PULSAR_INCLUDE_PATH NAMES "pulsar/Client.h")
+find_library(PULSAR_LIBRARY_PATH NAMES libpulsar.a)
+
+# find libpulsar.a's dependencies
+find_library(PROTOC_LIBRARY_PATH NAMES libprotoc.a)
+find_library(PROTOBUF_LIBRARY_PATH NAMES libprotobuf.a)
+find_library(PROTOBUF_LITE_LIBRARY_PATH NAMES libprotobuf-lite.a)
+message(STATUS "PROTOC_LIBRARY_PATH=${PROTOC_LIBRARY_PATH}")
+message(STATUS "PROTOBUF_LIBRARY_PATH=${PROTOBUF_LIBRARY_PATH}")
+message(STATUS "PROTOBUF_LITE_LIBRARY_PATH=${PROTOBUF_LITE_LIBRARY_PATH}")
+if (NOT PROTOC_LIBRARY_PATH OR NOT PROTOBUF_LIBRARY_PATH OR NOT PROTOBUF_LITE_LIBRARY_PATH)
+    message(FATAL_ERROR "Can't find Protobuf")
+endif ()
+set(PROTOBUF_LIBS ${PROTOC_LIBRARY_PATH} ${PROTOBUF_LIBRARY_PATH} ${PROTOBUF_LITE_LIBRARY_PATH})
+
+find_library(BOOST_SYSTEM_LIBRARY NAMES libboost_system.a)
+find_library(BOOST_REGEX_LIBRARY NAMES libboost_regex.a)
+message(STATUS "BOOST_SYSTEM_LIBRARY=${BOOST_SYSTEM_LIBRARY}")
+message(STATUS "BOOST_REGEX_LIBRARY=${BOOST_REGEX_LIBRARY}")
+if (NOT BOOST_SYSTEM_LIBRARY OR NOT BOOST_REGEX_LIBRARY)
+    message(FATAL_ERROR "Can't find Boost.System and Boost.Regex")
+endif ()
+set(BOOST_LIBS ${BOOST_SYSTEM_LIBRARY} ${BOOST_REGEX_LIBRARY})
+
+message(STATUS "Pulsar include path: ${PULSAR_INCLUDE_PATH}")
+message(STATUS "Pulsar library path: ${PULSAR_LIBRARY_PATH}")
+if (NOT PULSAR_INCLUDE_PATH OR NOT PULSAR_LIBRARY_PATH)
+    message(FATAL_ERROR "Pulsar not found")
+endif ()
+
 set(HEADERS
     qbus_consumer.h
     qbus_producer.h
@@ -64,6 +98,18 @@ set(SOURCES
     kafka/qbus_topic_partition_set.cc
     kafka/util/logger.cc
     kafka/util/version.cc
+    pulsar/log4cplus_logger.cc
+    pulsar/property_tree_proxy.cc
+    pulsar/pulsar_config.cc
+    pulsar/qbus_consumer.cc
+    pulsar/qbus_consumer_config.cc
+    pulsar/qbus_php_consumer.cc
+    pulsar/qbus_php_producer.cc
+    pulsar/qbus_producer.cc
+    pulsar/qbus_producer_config.cc
+    pulsar/qbus_producer_map.cc
+    pulsar/retryable_send_callback.cc
+    pulsar/timer.cc
     qbus_consumer.cc
     qbus_producer.cc
     )
@@ -76,16 +122,22 @@ include_directories(..
     ${EXTRA_INCLUDE_DIRS}
     ${LIBRDKAFKA_INCLUDE_DIR}
     ${LOG4CPLUS_INCLUDE_DIR}
+    ${PULSAR_INCLUDE_PATH}
     )
 target_link_libraries(${LIBNAME}
     ${EXTRA_LIBS}
     ${LIBRDKAFKA_LIB}
     ${LOG4CPLUS_LIB}
+    # put it before PROTOBUF_LIBS and BOOST_LIBS which are its dependencies
+    ${PULSAR_LIBRARY_PATH}
     ${PROTOBUF_LIBS}
+    ${BOOST_LIBS}
     dl
     pthread
     rt
     z
+    ssl
+    curl
     -static-libstdc++
     )
 
