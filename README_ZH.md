@@ -3,7 +3,7 @@
 * 针对使用者比较关心的消息生产的可靠性，作了近一步的提升
 
 ## 特点
-* 支持多种语言：c++/c、php、python、golang, 且各语言接口完全统一;
+* 支持多种语言：c++、php、python、golang, 且各语言接口完全统一;
 * 接口少，简单易用;
 * 针对高级用户，支持通过配置文件调整所有的librdkafka的配置;
 * 在非按key写入数据的情况下，尽最大努力将消息成功写入;
@@ -13,11 +13,17 @@
 
 ## 编译
 
-确保你的系统上安装了 boost (>= 1.41)，cmake (>= 2.8)，swig (>= 3.0.12)。
+确保你的系统上安装了 g++ (>= 4.8.5), boost (>= 1.41)，cmake (>= 3.1)，swig (>= 3.0.12)。
 
 #### git clone
 
-git clone --recursive https://github.com/Qihoo360/kafkabridge.git
+git clone --recursive https://github.com/Qihoo360/qbusbridge.git
+
+此外，qbus SDK 静态链接到 libstdc++，因此必须确保 `libstdc++.a` 存在。对于 CentOS 用户，运行：
+
+```bash
+sudo yum install -y glibc-static libstdc++-static
+```
 
 ### 1. 安装子模块
 
@@ -25,32 +31,81 @@ git clone --recursive https://github.com/Qihoo360/kafkabridge.git
 
 它会自动下载子模块，并将其安装到`cxx/thirdparts/local`，即`CMakeLists.txt`查找头文件和库文件的目录。
 
+见 `./cxx/thirdparts/local`：
+
+```
+include/
+  librdkafka/
+    rdkafka.h
+  log4cplus/
+    logger.h
+lib/
+  librdkafka.a
+  liblog4cplus.a
+```
+
 ### 2. 编译SDK
 
 #### C/C++
 
-C的SDK依赖于C++的SDK，因此得先编译C++ SDK。
+进入`cxx`目录，执行`./build.sh`，会生成以下文件：
 
-进入`cxx`目录，执行`./build.sh <BUILD_TYPE>`（其中`<BUILD_TYPE>`是`debug`或者`release`），在`cxx/lib/<BUILD_TYPE>`目录下会生成`libQBus.so`。
+```
+include/
+  qbus_consumer.h
+  qbus_producer.h
+lib/
+  debug/libQBus.so
+  release/libQBus.so
+```
 
-然后进入`c`目录，执行`./build.sh <BUILD_TYPE>`，在`c/lib/<BUILD_TYPE>`目录下会生成`libQBus_C.so`。
+> 虽然构建 C++ SDK 需要 C++11 支持，但是 SDK 也可以被旧版本 g++ 使用。比如，使用 g++ 4.8.5 编译 qbus SDK，使用 g++ 4.4.7 使用 qbus SDK。
 
 #### Go
-进入`golang`目录，执行`./build.sh`，在`gopath/src/qbus`子目录下会生成`qbus.go`和`libQBus_go.so`。
+进入`golang`目录，执行`./build.sh`，会生成以下文件：
 
-如果启用了 go module，`qbus.go` 和 `libQBus_go.so` 会放在 `examples/qbus` 子目录，相应的 `go.mod` 会生成在 `examples` 和 `examples/qbus` 子目录中。
+```
+gopath/
+  src/
+    qbus/
+      qbus.go
+      libQBus_go.so
+```
+
+可以运行 `USE_GO_MOD=1 ./build.sh` 来启用 go module，此时会生成以下文件：
+
+```
+examples/
+  go.mod
+  qbus/
+    qbus.go
+    go.mod
+    libQBus_go.so
+```
 
 #### Python
-进入`python`目录，执行`./build.sh`，在 `examples` 目录会生成`qbus.py`和`_qbus.so`。
+进入`python`目录，执行`./build.sh`，会生成以下文件：
+
+```
+examples/
+  qbus.py
+  _qbus.so
+```
 
 #### PHP
-进入`php`目录，执行`./build.sh`，生成的 `qbus.php` 在当前目录，`qbus.so` 在 `examples` 目录。
+进入`php`目录，执行`./build.sh`，会生成以下文件：
+
+```
+examples/
+  qbus.php
+  qbus.so
+```
 
 ### 3. 编译示例程序
 
 #### C/C++
 
-进入`examples`子目录，运行`make`生成可执行文件，运行`make clean`删除它们。
+进入`examples`子目录，运行 `./build.sh [debug|release]` 生成可执行文件，其中 `debug` 是使用 `lib/debug` 目录下的 `libQBus.so`，`release` 是使用 `lib/release` 目录下的 `libQBus.so`。运行`make clean`删除它们。
 
 如果要运行自己的程序，可以参考`Makefile`文件。
 
@@ -58,7 +113,11 @@ C的SDK依赖于C++的SDK，因此得先编译C++ SDK。
 
 进入`examples`子目录，运行`./build.sh`生成可执行文件，运行`./clean.sh`删除它们。
 
-运行可执行文件时把`libQBus_go.so`路径加入`LD_LIBRARY_PATH`环境变量。
+运行可执行文件时把`libQBus_go.so`路径加入`LD_LIBRARY_PATH`环境变量：
+
+```bash
+export LD_LIBRARY_PATH=$PWD/gopath/src/qbus:$LD_LIBRARY_PATH
+```
 
 如果要运行自己的程序，将生成的`gopath`目录加入`GOPATH`环境变量，或者将`gopath/src/qbus`目录移动到`$GOPATH/src`下。
 

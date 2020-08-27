@@ -4,7 +4,7 @@
 * The reliability of messages producing, that is may be the biggest concerns of the users, has been considerably improved.
 
 ## Features
-* Multiple programming languages are supported, includes C/C++, PHP, Python, Golong, etc, with very consistent APIs.
+* Multiple programming languages are supported, includes C++, PHP, Python, Golong, with very consistent APIs.
 * Few interfaces, so it is easy to use.
 * For advanced users, adapting [librdkafka](https://github.com/edenhill/librdkafka)'s configration by profiles is also supported.
 * In the case of writing data not by keys, the SDK will do the best to guarantee the messages being written successfully .
@@ -14,10 +14,16 @@
 
 ## Compiling
 
-Ensure your system has boost (>= 1.41), cmake (>= 2.8) and swig (>= 3.0.12) installed.
+Ensure your system has g++ (>= 4.8.5), boost (>= 1.41), cmake (>= 3.1) and swig (>= 3.0.12) installed.
+
+In addition, qbus SDK is linking libstdc++ statically, so you must ensure that `libstdc++.a` exists. For CentOS users, run:
+
+```bash
+sudo yum install -y glibc-static libstdc++-static
+```
 
 #### git clone:
-git clone --recursive https://github.com/Qihoo360/kafkabridge.git
+git clone --recursive https://github.com/Qihoo360/qbusbridge.git
 
 ### 1. Install submodules
 
@@ -25,32 +31,81 @@ Run `./build_dependencies.sh`.
 
 It will automatically download submodules and install them to `cxx/thirdparts/local` where `CMakeLists.txt` finds headers and libraries.
 
+See `./cxx/thirdparts/local`:
+
+```
+include/
+  librdkafka/
+    rdkafka.h
+  log4cplus/
+    logger.h
+lib/
+  librdkafka.a
+  liblog4cplus.a
+```
+
 ### 2. Build SDK
 
-#### C/C++
+#### C++
 
-C SDK depends on C++ SDK, so you should build C++ SDK first.
+Navigate to the `cxx` directory and run `./build.sh`, following files will be generated:
 
-Navigate to the `cxx` directory and run `./build.sh <BUILD_TYPE>` (`<BUILD_TYPE` is `debug` or `release`)，you'll get `libQBus.so` in `cxx/lib/<BUILD_TYPE>` directory.
+```
+include/
+  qbus_consumer.h
+  qbus_producer.h
+lib/
+  debug/libQBus.so
+  release/libQBus.so
+```
 
-Then navigate to the `c` directory and run `./build.sh <BUILD_TYPE>`, you'll get `libQBus_C.so` in `c/lib/<BUILD_TYPE>` directory.
+> Though building C++ SDK requires C++11 support, the SDK could be used with older g++. eg. build qbus SDK with g++ 4.8.5 and use qbus SDK with g++ 4.4.7.
 
 #### Go
-Navigate to the `golang` directory and run `./build.sh`, you'll get `qbus.go` and `libQBus_go.so` in `gopath/src/qbus` subdirectory.
+Navigate to the `golang` directory and run `./build.sh`, following files will be generated:
 
-If go module was used, the `qbus.go` and `libQbus_go.so` will be put in `examples/qbus` subdirectory. Relative `go.mod` will be generated in `examples` and `examples/qbus` subdirectories.
+```
+gopath/
+  src/
+    qbus/
+      qbus.go
+      libQBus_go.so
+```
+
+You can enable go module for examples by running `USE_GO_MOD=1 ./build.sh`. Then following files will be generated:
+
+```
+examples/
+  go.mod
+  qbus/
+    qbus.go
+    go.mod
+    libQBus_go.so
+```
 
 #### Python
-Navigate to the `python` directory and run `./build.sh`, you'll get `qbus.py` and `_qbus.so` in `examples` subdirectory.
+Navigate to the `python` directory and run `./build.sh`, following files will be generated:
+
+```
+examples/
+  qbus.py
+  _qbus.so
+```
 
 #### PHP
-Navigate to the `php` directory and run `build.sh`, you'll get `qbus.php` in the current directory and `qbus.so` in `examples` subdirectory.
+Navigate to the `php` directory and run `build.sh`, following files will be generated:
+
+```
+examples/
+  qbus.php
+  qbus.so
+```
 
 ### 3. Build examples
 
-#### C/C++
+#### C++
 
-Navigate to `examples` subdirectory and run `make` to generate executable files, run `make clean` to delete them.
+Navigate to `examples` subdirectory and run `./build.sh [debug|release]` to generate executable files. `debug` is using `libQBus.so` in `lib/debug` subdirectory, `release` is using `libQBus.so` in `lib/release` subdirectory. Run `make clean` to delete them.
 
 If you want to build your own programs, see how `Makefile` does.
 
@@ -58,7 +113,11 @@ If you want to build your own programs, see how `Makefile` does.
 
 Navigate to `examples` subdirectory and run `./build.sh` to generate executable files, run `./clean.sh` to delete them.
 
-Add path of `libQBus_go.so` to env `LD_LIBRARY_PATH`.
+Add path of `libQBus_go.so` to env `LD_LIBRARY_PATH`, eg.
+
+```bash
+export LD_LIBRARY_PATH=$PWD/gopath/src/qbus:$LD_LIBRARY_PATH
+```
 
 If you want to build your own programs, add generated `gopath` directory to env `GOPATH`, or move `gopath/src/qbus` directory to `$GOPATH/src`.
 
