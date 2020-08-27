@@ -160,11 +160,14 @@ bool QbusConsumer::QbusConsumerImp::init(const std::string& log_path, const std:
         return false;
     }
 
-    bool rt = QbusHelper::getQbusBrokerList(config_loader_, &broker_list_);
+    broker_list_ = cluster_name_;
     INFO(__FUNCTION__ << " | Start init | qbus cluster: " << cluster_name_ << " | config: " << config_path
-                      << " | broker_lsit:" << broker_list_);
-
-    return (rt && initRdKafka());
+                      << " | broker_list:" << broker_list_);
+    if (broker_list_.empty()) {
+        return QbusHelper::getQbusBrokerList(config_loader_, &broker_list_) && initRdKafka();
+    } else {
+        return initRdKafka();
+    }
 }
 
 bool QbusConsumer::QbusConsumerImp::subscribe(const std::string& group,
@@ -883,7 +886,12 @@ bool QbusConsumer::init(const std::string& cluster_name, const std::string& log_
                         const std::string& config_path, const QbusConsumerCallback& callback) {
     bool rt = false;
 
-    qbus_consumer_imp_ = new QbusConsumerImp(cluster_name
+    std::string real_cluster_name = cluster_name;
+    if (cluster_name.find(":") == std::string::npos) {
+        real_cluster_name = "";
+    }
+
+    qbus_consumer_imp_ = new QbusConsumerImp(real_cluster_name
 #ifndef NOT_USE_CONSUMER_CALLBACK
                                              ,
                                              callback

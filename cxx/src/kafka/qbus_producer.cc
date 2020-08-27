@@ -59,8 +59,14 @@ bool QbusProducerImp::init(const std::string& cluster_name, const std::string& l
 
     INFO(__FUNCTION__ << " | Start init | qbus cluster: " << cluster_name << " | topic: " << topic_name
                       << " | config: " << config_path);
-    is_init_ = QbusHelper::getQbusBrokerList(config_loader_, &broker_list_) && initRdKafkaConfig() &&
-               initRdKafkaHandle(topic_name);
+    if (cluster_name.find(":") == std::string::npos) {
+        // fetch broker list from config
+        is_init_ = QbusHelper::getQbusBrokerList(config_loader_, &broker_list_) && initRdKafkaConfig() &&
+                   initRdKafkaHandle(topic_name);
+    } else {
+        broker_list_ = cluster_name;
+        is_init_ = initRdKafkaConfig() && initRdKafkaHandle(topic_name);
+    }
 
     INFO(__FUNCTION__ << " | broker list:" << broker_list_);
 
