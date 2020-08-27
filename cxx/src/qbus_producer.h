@@ -1,25 +1,29 @@
-#ifndef QBUS_PRODUCER_H_
-#define QBUS_PRODUCER_H_
+#ifndef QBUS_QBUS_PRODUCER_H_
+#define QBUS_QBUS_PRODUCER_H_
 
 #include <string>
-//-----------------------------------------------------
+
 namespace qbus {
 
-class QbusProducerImp;
-
 class QbusProducer {
- public:
-  QbusProducer();
-  ~QbusProducer();
+   public:
+    QbusProducer();
+    ~QbusProducer();
 
- public:
-  bool init(const std::string& broker_list, const std::string& log_path,
-            const std::string& config_path, const std::string& topic_name);
-  void uninit();
-  bool produce(const char* data, size_t data_len, const std::string& key);
+    bool init(const std::string& cluster, const std::string& log_path, const std::string& config_path,
+              const std::string& topic);
+    void uninit();
+    bool produce(const char* data, size_t data_len, const std::string& key);
 
- private:
-  QbusProducerImp* qbus_producer_imp_;
+    class Imp;
+
+   private:
+    Imp* imp_;
+
+    QbusProducer(const QbusProducer&);
+    QbusProducer& operator=(const QbusProducer&);
 };
+
 }  // namespace qbus
-#endif  //#define QBUS_PRODUCER_H_
+
+#endif  // QBUS_QBUS_PRODUCER_H_

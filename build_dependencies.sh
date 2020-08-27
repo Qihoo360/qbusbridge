@@ -3,15 +3,11 @@ set -o errexit
 cd `dirname $0`
 
 VERSION=$(cat VERSION)
-echo "const char* version = \"$VERSION\";" > ./cxx/util/version.cc
+echo "const char* version = \"$VERSION\";" > ./cxx/src/kafka/util/version.cc
 
 # init and download submodules
 git submodule init
 git submodule update
-
-# TODO: set your own c/c++ compiler
-export CC=/usr/bin/gcc
-export CXX=/usr/bin/g++
 
 INSTALL_DIR=$PWD/cxx/thirdparts/local
 
@@ -26,7 +22,7 @@ cd -
 # build log4cplus static library and support linked in a shared library
 cd ./cxx/thirdparts/log4cplus
 ./scripts/fix-timestamps.sh
-./configure --prefix=$INSTALL_DIR --enable-static --with-pic
+CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" ./configure --prefix=$INSTALL_DIR --enable-static --with-pic
 make
 make install
 

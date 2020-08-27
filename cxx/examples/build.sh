@@ -7,9 +7,6 @@ if [ $# != 1 ] ; then
   exit 1
 fi
 
-# TODO: set your own c++ compiler
-CXX=/usr/bin/g++
-
 case "$1" in
   debug)
     LIB_DIR=`pwd`/../lib/debug

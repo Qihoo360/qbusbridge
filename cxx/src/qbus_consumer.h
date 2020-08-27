@@ -4,49 +4,60 @@
 #include <string>
 #include <vector>
 
-#include "qbus_consumer_callback.h"
-//-------------------------------------------------------------
 struct rd_kafka_message_s;
 
 namespace qbus {
 
-class QbusConsumerImp;
-class QbusConsumerCallback;
-class QbusMsgContentInfo;
+struct QbusMsgContentInfo {
+    std::string topic;
+    std::string msg;
+    size_t msg_len;
+
+    // kafka only
+    rd_kafka_message_s* rd_message;
+
+    // pulsar only
+    std::string msg_id;
+};
+
+class QbusConsumerCallback {
+   public:
+    virtual ~QbusConsumerCallback() {}
+
+    virtual void deliveryMsg(const std::string& topic, const char* msg, size_t msg_len) const {}
+
+    virtual void deliveryMsgForCommitOffset(const QbusMsgContentInfo& info) const {}
+};
 
 class QbusConsumer {
- public:
-  QbusConsumer();
-  ~QbusConsumer();
+   public:
+    QbusConsumer();
+    ~QbusConsumer();
 
- public:
-  bool init(const std::string& broker_list, const std::string& log_path,
-            const std::string& config_path
-#ifndef NOT_USE_CONSUMER_CALLBACK
-            ,
-            const QbusConsumerCallback& callbck
-#endif
-  );
-  bool subscribe(const std::string& group,
-                 const std::vector<std::string>& topics);
-  bool subscribeOne(const std::string& group, const std::string& topics);
-  bool start();
-  void stop();
+    bool init(const std::string& cluster, const std::string& log_path, const std::string& config_path,
+              const QbusConsumerCallback& callback = QbusConsumerCallback());
 
-#ifdef NOT_USE_CONSUMER_CALLBACK
-  bool consume(QbusMsgContentInfo& msg_content_info);
-#endif
-  void commitOffset(const QbusMsgContentInfo& qbusMsgContentInfo);
+    bool subscribe(const std::string& group, const std::vector<std::string>& topics);
+    bool subscribeOne(const std::string& group, const std::string& topic);
+    bool start();
+    void stop();
 
-  bool pause(const std::vector<std::string>& topics);
-  bool resume(const std::vector<std::string>& topics);
+    bool pause(const std::vector<std::string>& topics);
+    bool resume(const std::vector<std::string>& topics);
 
- private:
-  QbusConsumerImp* qbus_consumer_imp_;
+    bool consume(QbusMsgContentInfo& info);
 
- private:
-  QbusConsumer(const QbusConsumer&);
-  QbusConsumer& operator=(const QbusConsumer&);
+    void commitOffset(const QbusMsgContentInfo& info);
+
+    class Imp;
+
+   private:
+    Imp* imp_;
+
+    QbusConsumer(const QbusConsumer&);
+    QbusConsumer& operator=(const QbusConsumer&);
 };
+
 }  // namespace qbus
-#endif  //#ifndef QBUS_QBUS_CONSUMER_H_
+
+#endif  // QBUS_QBUS_CONSUMER_H_

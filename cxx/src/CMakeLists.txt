@@ -1,83 +1,93 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
-PROJECT(QBus CXX)
+project(QBus CXX)
 
-SET(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_CXX_STANDARD 11)
 
-IF(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release")
-ENDIF()
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
-# use different output directory for different build type
-MESSAGE(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    SET(CMAKE_CONFIGURATION_TYPES "Debug")
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../lib/debug")
-    SET(CMAKE_CXX_FLAGS "-g -O0 ${CMAKE_CXX_FLAGS}")
-ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
-    SET(CMAKE_CONFIGURATION_TYPES "Release")
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../lib/release")
-    SET(CMAKE_CXX_FLAGS "-DNDEBUG -O2 ${CMAKE_CXX_FLAGS}")
-ENDIF()
-MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/..")
+string(CONCAT CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=0 " ${CMAKE_CXX_FLAGS})
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    string(CONCAT CMAKE_CXX_FLAGS "-g -O0 " ${CMAKE_CXX_FLAGS})
+    set(INSTALL_SUBDIR "debug")
+else (CMAKE_BUILD_TYPE MATCHES Debug)
+    string(CONCAT CMAKE_CXX_FLAGS "-DNDEBUG -O2 " ${CMAKE_CXX_FLAGS})
+    set(INSTALL_SUBDIR "release")
+endif ()
+message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
-# find include directories and libraries
-SET(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-SET(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/../thirdparts/local")
-MESSAGE(STATUS "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
+set(CMAKE_PREFIX_PATH
+    ${CMAKE_PREFIX_PATH}
+    ${PROJECT_SOURCE_DIR}/../thirdparts/local
+    )
 
-FIND_PATH(LIBRDKAFKA_INCLUDE_DIR NAMES "librdkafka/rdkafka.h")
-FIND_LIBRARY(LIBRDKAFKA_LIB NAMES rdkafka)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-IF(NOT LIBRDKAFKA_INCLUDE_DIR OR NOT LIBRDKAFKA_LIB)
-    MESSAGE(FATAL_ERROR "Can't find librdkafka")
-ENDIF()
+# find qbus::kafka's dependencies
+find_path(LIBRDKAFKA_INCLUDE_DIR NAMES "librdkafka/rdkafka.h")
+find_library(LIBRDKAFKA_LIB NAMES librdkafka.a)
 
-MESSAGE(STATUS "LIBRDKAFKA_INCLUDE_DIR=${LIBRDKAFKA_INCLUDE_DIR}")
-MESSAGE(STATUS "LIBRDKAFKA_LIB=${LIBRDKAFKA_LIB}")
+if (NOT LIBRDKAFKA_INCLUDE_DIR OR NOT LIBRDKAFKA_LIB)
+    message(FATAL_ERROR "Can't find librdkafka")
+endif ()
+message(STATUS "LIBRDKAFKA_INCLUDE_DIR=${LIBRDKAFKA_INCLUDE_DIR}")
+message(STATUS "LIBRDKAFKA_LIB=${LIBRDKAFKA_LIB}")
 
-FIND_PATH(LOG4CPLUS_INCLUDE_DIR NAMES "log4cplus/logger.h")
-FIND_LIBRARY(LOG4CPLUS_LIB NAMES NAMES log4cplus)
-
-IF(NOT LOG4CPLUS_INCLUDE_DIR OR NOT LOG4CPLUS_LIB)
+find_path(LOG4CPLUS_INCLUDE_DIR NAMES "log4cplus/logger.h")
+find_library(LOG4CPLUS_LIB NAMES liblog4cplus.a)
+if (NOT LOG4CPLUS_INCLUDE_DIR OR NOT LOG4CPLUS_LIB)
     MESSAGE(FATAL_ERROR "Can't find log4cplus")
-ENDIF()
+endif ()
+add_definitions("-Wno-deprecated-declarations")
 
-MESSAGE(STATUS "LOG4CPLUS_INCLUDE_DIR=${LOG4CPLUS_INCLUDE_DIR}")
-MESSAGE(STATUS "LOG4CPLUS_LIB=${LOG4CPLUS_LIB}")
+message(STATUS "LOG4CPLUS_INCLUDE_DIR=${LOG4CPLUS_INCLUDE_DIR}")
+message(STATUS "LOG4CPLUS_LIB=${LOG4CPLUS_LIB}")
 
-# compile target shared library
-SET(PROJECT_ALL_FILES
+set(HEADERS
+    qbus_consumer.h
+    qbus_producer.h
+    )
+
+set(SOURCES
     ${SOURCES}
-    ../util/logger.cc
-    ../util/version.cc
-    ./qbus_helper.cc
-    ./qbus_config.cc
-    ./qbus_record_msg.cc
-    ./qbus_consumer_imp.cc
-    ./qbus_consumer.cc
-    ./qbus_producer.cc
-    ./qbus_producer_imp_map.cc
-    ./qbus_topic_partition_set.cc
-    ./qbus_rdkafka.cc
+    kafka/qbus_config.cc
+    kafka/qbus_consumer.cc
+    kafka/qbus_helper.cc
+    kafka/qbus_producer.cc
+    kafka/qbus_producer_imp_map.cc
+    kafka/qbus_rdkafka.cc
+    kafka/qbus_record_msg.cc
+    kafka/qbus_thread.cc
+    kafka/qbus_topic_partition_set.cc
+    kafka/util/logger.cc
+    kafka/util/version.cc
+    qbus_consumer.cc
+    qbus_producer.cc
     )
 
 if (NOT DEFINED LIBNAME)
-    set(LIBNAME QBus)
+    set(LIBNAME ${PROJECT_NAME})
 endif ()
-ADD_LIBRARY(${LIBNAME} SHARED ${PROJECT_ALL_FILES})
-
-INCLUDE_DIRECTORIES(..)
-INCLUDE_DIRECTORIES(${LIBRDKAFKA_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${LOG4CPLUS_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${EXTRA_INCLUDE_DIRS})
-
-TARGET_LINK_LIBRARIES(${LIBNAME}
+add_library(${LIBNAME} SHARED ${SOURCES})
+include_directories(..
+    ${EXTRA_INCLUDE_DIRS}
+    ${LIBRDKAFKA_INCLUDE_DIR}
+    ${LOG4CPLUS_INCLUDE_DIR}
+    )
+target_link_libraries(${LIBNAME}
+    ${EXTRA_LIBS}
     ${LIBRDKAFKA_LIB}
     ${LOG4CPLUS_LIB}
+    ${PROTOBUF_LIBS}
     dl
     pthread
     rt
     z
-    ${EXTRA_LIBS}
+    -static-libstdc++
     )
+
+install(FILES ${HEADERS} DESTINATION include)
+install(TARGETS ${LIBNAME} LIBRARY DESTINATION "lib/${INSTALL_SUBDIR}")

@@ -1,33 +1,21 @@
-#/usr/bin
+#!/bin/bash
 set -o errexit
 cd `dirname $0`
 
-if [ $# != 1 ] ; then
-  echo "USAGE: $0 [debug | release]"
-  exit 1
-fi
+THIRD_PARTY_DIR=./thirdparts/local
+THIRD_LIB_DIR=$THIRD_PARTY_DIR/lib
 
-# TODO: set your own c/c++ compiler
-export CC=/usr/bin/gcc
-export CXX=/usr/bin/g++
+BUILD_DIR=_builds
 
-mkdir -p build
-
-cd build
-rm -rf ./*
-
-case "$1" in
-  debug)
-    cmake -DCMAKE_BUILD_TYPE=Debug ../src
+build_lib() {
+    CMAKE_BUILD_TYPE=$1
+    mkdir -p $BUILD_DIR/$1
+    cd $BUILD_DIR/$1
+    cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE ../../src
     make
-    cd ../
-    ;;
-  release)
-    cmake -DCMAKE_BUILD_TYPE=Release ../src
-    make
-    cd ../
-    ;;
-  *)
-    echo "USAGE: $0 [debug | release]"
-    exit 2
-esac
+    make install
+    cd -
+}
+
+build_lib Debug
+build_lib Release
