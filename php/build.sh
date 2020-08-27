@@ -1,11 +1,14 @@
-#/usr/bin
-set -e
+#!/bin/bash
 cd `dirname $0`
-
-if [[ ! $PULSAR_DEP ]]; then
-    echo "PULSAR_DEP must be defined!"
-    exit 1
+if [[ `which clang-format` ]]; then
+    cd ..
+    ./format_code.sh
+    cd -
+else
+    echo "[WARN] Your system doesn't have clang-format, please ensure your code style is right"
 fi
+
+set -o errexit
 
 PHP_VERSION=`php-config --version`
 echo "PHP version: $PHP_VERSION"

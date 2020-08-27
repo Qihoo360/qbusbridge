@@ -1,6 +1,14 @@
-#/usr/bin
-set -e
+#!/bin/bash
 cd `dirname $0`
+if [[ `which clang-format` ]]; then
+    cd ..
+    ./format_code.sh
+    cd -
+else
+    echo "[WARN] Your system doesn't have clang-format, please ensure your code style is right"
+fi
+
+set -o errexit
 
 mkdir -p src
 echo 'swig -go -c++ -cgo -intgosize 64 -o src/qbus_wrap.cxx qbus.i'

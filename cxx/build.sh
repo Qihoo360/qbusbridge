@@ -1,6 +1,14 @@
 #!/bin/bash
-set -o errexit
 cd `dirname $0`
+if [[ `which clang-format` ]]; then
+    cd ..
+    ./format_code.sh
+    cd -
+else
+    echo "[WARN] Your system doesn't have clang-format, please ensure your code style is right"
+fi
+
+set -o errexit
 
 THIRD_PARTY_DIR=./thirdparts/local
 THIRD_LIB_DIR=$THIRD_PARTY_DIR/lib
