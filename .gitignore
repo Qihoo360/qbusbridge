@@ -21,7 +21,8 @@ golang/src
 go.mod
 build_go/
 
-thirdparts/
+thirdparts/boost*
+thirdparts/protobuf*
 
 version.cc
 *.tar.gz
