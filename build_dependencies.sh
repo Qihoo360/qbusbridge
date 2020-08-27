@@ -56,7 +56,34 @@ build_protobuf_2_6() {
     popd
 }
 
+build_pulsar() {
+    PROTOC_PATH="$INSTALL_DIR/bin/protoc"
+    PULSAR_CPP_DIR="$SOURCE_DIR/pulsar/pulsar-client-cpp"
+
+    # Use our own CMakeLists.txt to compile libpulsar.a only
+    cp ./pulsar-client-cpp/CMakeLists.txt "$PULSAR_CPP_DIR"
+    cp ./pulsar-client-cpp/lib/CMakeLists.txt "$PULSAR_CPP_DIR/lib"
+
+    pushd $PULSAR_CPP_DIR
+    mkdir -p _builds
+    pushd _builds
+    CXX=g++ cmake .. \
+        -DPROTOC_PATH="$PROTOC_PATH" \
+        -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" \
+        -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+        -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"
+    # Here we use multiple threads to compile because it take long to compile with a single thread
+    make -j4  
+    make install
+    pushd $PULSAR_CPP_DIR
+    git checkout -- .
+    popd
+    popd
+    popd
+}
+
 build_rdkafka
 build_log4cplus
 build_boost_1_70
 build_protobuf_2_6
+build_pulsar
