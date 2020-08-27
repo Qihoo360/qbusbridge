@@ -1,10 +1,10 @@
 #!/bin/bash
-cd `dirname $0`
+set -e
+cd `dirname "$0"`
 
-rm -rf ./build
-rm -f qbus.py *_wrap.* *.pyc
-rm -f *.so
+rm -rf ./_builds
 rm -rf ./src
-rm -rf ./lib
-
-cd examples && rm -f *.so qbus.py *.pyc
+cd examples
+rm -rf ./_qbus.so
+rm -f ./qbus.py*
+cd -

@@ -4,7 +4,6 @@
 %{
 #include "../cxx/src/qbus_producer.h"
 #include "../cxx/src/qbus_consumer.h"
-#include "../cxx/src/qbus_consumer_callback.h"
 %}
 
 %include "std_string.i"
@@ -19,4 +18,3 @@ namespace std {
 
 %include "../cxx/src/qbus_producer.h"
 %include "../cxx/src/qbus_consumer.h"
-%include "../cxx/src/qbus_consumer_callback.h"

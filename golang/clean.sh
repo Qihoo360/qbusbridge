@@ -1,10 +1,12 @@
 #!/bin/bash
-cd `dirname $0`
+set -e
+cd `dirname "$0"`
 
-rm -rf gopath
-rm -rf build_go
-rm *.so
+rm -rf ./_builds
+rm -rf ./gopath
 rm -rf ./src
-rm -rf ./lib
-
-cd examples && ./clean.sh
+rm -f ./examples/go.mod
+rm -rf ./examples/qbus
+cd examples
+rm -f consumer producer consume_pause_resume
+cd -

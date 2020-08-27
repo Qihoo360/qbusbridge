@@ -1,9 +1,8 @@
 #!/bin/bash
-cd `dirname $0`
+set -e
+cd `dirname "$0"`
 
-rm -rf ./build
-rm -f qbus.php
-rm -f *.so
+rm -rf ./_builds
 rm -rf ./src
-rm -rf ./lib
-rm -rf ./examples/*.so
+rm -f ./examples/qbus.php
+rm -f ./examples/*.so

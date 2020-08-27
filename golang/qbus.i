@@ -3,7 +3,6 @@
 %{
 #include "../cxx/src/qbus_producer.h"
 #include "../cxx/src/qbus_consumer.h"
-#include "../cxx/src/qbus_consumer_callback.h"
 %}
 
 %include "std_string.i"
@@ -15,7 +14,6 @@
 
 %include "../cxx/src/qbus_producer.h"
 %include "../cxx/src/qbus_consumer.h"
-%include "../cxx/src/qbus_consumer_callback.h"
 
 %insert(cgo_comment_typedefs) %{
 #cgo LDFLAGS:-L${SRCDIR} -lQBus_go

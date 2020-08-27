@@ -1,7 +1,7 @@
 <?php
 
 
-require("../qbus.php");
+require("./qbus.php");
 
 ini_set('error_reporting', E_ALL);
 

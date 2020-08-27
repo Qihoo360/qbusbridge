@@ -2,7 +2,7 @@
 
 declare(ticks = 1);
 
-require("../qbus.php");
+require("./qbus.php");
 
 if (count($argv) < 4)
 {
