@@ -24,6 +24,7 @@ build_go/
 
 cxx/thirdparts/boost*
 cxx/thirdparts/protobuf*
+cxx/thirdparts/local/
 
 version.cc
 *.tar.gz
