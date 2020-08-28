@@ -1,5 +1,20 @@
 ## 简介 [English](https://github.com/Qihoo360/kafkabridge/blob/master/README.md)
-* qbusbridge 底层基于 [librdkafka](https://github.com/edenhill/librdkafka), 与之相比封装了大量的使用细节，简单易用，使用者无需了解过多的Kafka系统细节，只需调用极少量的接口，就可完成消息的生产和消费;
+* Qbusbridge 是 pub-sub 消息系统的客户端 SDK，目前它支持：
+
+  * [Apache Kafka](http://kafka.apache.org/)
+  * [Apache Pulsar](https://pulsar.apache.org/)
+
+  用户可以通过修改配置切换到任意一个 pub-sub 消息系统。默认配置是访问 Kafka，如果想要切换到 Pulsar，需要修改配置为：
+
+  ```ini
+  mq.type=pulsar
+  # Other configs for Pulsar...
+  ```
+
+  更多细节见 [config](config/)。
+
+* Qbusbridge-Kafka 底层基于 [librdkafka](https://github.com/edenhill/librdkafka), 与之相比封装了大量的使用细节，简单易用，使用者无需了解过多的Kafka系统细节，只需调用极少量的接口，就可完成消息的生产和消费;
+
 * 针对使用者比较关心的消息生产的可靠性，作了近一步的提升
 
 ## 特点
