@@ -82,8 +82,18 @@ build_pulsar() {
     popd
 }
 
-build_rdkafka
-build_log4cplus
-build_boost_1_70
-build_protobuf_2_6
-build_pulsar
+if [[ ! -f $INSTALL_DIR/lib/librdkafka.a ]]; then
+    build_rdkafka
+fi
+if [[ ! -f $INSTALL_DIR/lib/liblog4cplus.a ]]; then
+    build_log4cplus
+fi
+if [[ ! -f $INSTALL_DIR/lib/libboost_regex.a ]] || [[ ! -f $INSTALL_DIR/lib/libboost_system.a ]]; then
+    build_boost_1_70
+fi
+if [[ ! -f $INSTALL_DIR/lib/libprotobuf-lite.a ]]; then
+    build_protobuf_2_6
+fi
+if [[ ! -f $INSTALL_DIR/lib/libpulsar.a ]]; then
+    build_pulsar
+fi
