@@ -280,6 +280,8 @@ api.version.request=false
 broker.version.fallback=0.9.0.1
 ```
 
+**当前配置和 broker 0.9.0.1 兼容。因此，如果使用了高版本的 broker，`api.version.request` 应该配置为 true。否则消息协议会使用旧版本，比如，没有时间戳字段。**
+
 ## 联系我们
 
 QQ 群：876834263
