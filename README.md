@@ -266,6 +266,8 @@ api.version.request=false
 broker.version.fallback=0.9.0.1
 ```
 
+**The default config is now compatible with broker 0.9.0.1. Therefore, if higher version broker is used, `api.version.request` should be set true. Otherwise, the message protocol would be older version, e.g. no timestamp field.**
+
 ## Contact
 
  QQ group: 876834263
