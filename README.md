@@ -40,7 +40,25 @@ sudo yum install -y glibc-static libstdc++-static
 ```
 
 #### git clone:
-git clone --recursive https://github.com/Qihoo360/qbusbridge.git
+
+```shell
+git clone --recursive https://github.com/ntt360/qbusbridge.git
+```
+
+
+#### SASL Support
+
+If you need `librdkafa` to support `kafka` SASL authentication, you also need to install:
+
+```shell
+sudo yum install -y cyrus-sasl-devel
+```
+
+If you also use GSSAPI authentication, you need to compile the corresponding plugin:
+
+```shell
+sudo yum install -y cyrus-sasl-gssapi
+```
 
 ### 1. Install submodules
 
@@ -60,6 +78,15 @@ lib/
   librdkafka.a
   liblog4cplus.a
 ```
+
+If you want to support `SASL` functionality, after compiling, you can go to the `cxx/thirdparts/librdkafka/examples/` directory and execute the following command to test whether the `SASL` component has been successfully compiled:
+
+```shell
+cd cxx/thirdparts/librdkafka/examples/
+./rdkafka_example -X builtin.features
+# builtin.features = gzip,snappy,ssl,sasl,regex,lz4,sasl_gssapi,sasl_plain,sasl_scram,plugins,sasl_oauthbearer,http,oidc
+```
+Make sure the output of `builtin.features` has compiled the `SASL` related authentication modules!
 
 ### 2. Build SDK
 

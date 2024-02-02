@@ -20,4 +20,5 @@ case "$1" in
 esac
 
 make clean
+CXX=/usr/bin/g++
 make CXX=$CXX LIB_DIR=$LIB_DIR

@@ -32,12 +32,25 @@
 
 #### git clone
 
+```shell
 git clone --recursive https://github.com/Qihoo360/qbusbridge.git
+```
 
 此外，qbus SDK 静态链接到 libstdc++，因此必须确保 `libstdc++.a` 存在。对于 CentOS 用户，运行：
 
 ```bash
 sudo yum install -y glibc-static libstdc++-static
+```
+
+#### 支持 sacl
+
+如果你希望 `librdkafa` 支持 `kafka` `sacl` 鉴权相关功能，那么还需要安装：
+
+```shell
+sudo yum install -y cyrus-sasl-devel
+
+# 如果你还用到 GSSAPI 认证，那么还需要编译该插件
+sudo yum install -y cyrus-sasl-gssapi
 ```
 
 ### 1. 安装子模块
@@ -58,6 +71,16 @@ lib/
   librdkafka.a
   liblog4cplus.a
 ```
+
+如果你希望支持 `sacl` 功能，可以在编译后进入 `cxx/thirdparts/librdkafka/examples/` 目录，执行如下命名测试 `sacl` 组件是否编译成功：
+
+```shell
+cd cxx/thirdparts/librdkafka/examples/
+./rdkafka_example -X builtin.features
+# builtin.features = gzip,snappy,ssl,sasl,regex,lz4,sasl_gssapi,sasl_plain,sasl_scram,plugins,sasl_oauthbearer,http,oidc
+```
+
+确保 `builtin.features` 输出值编译了 `sasl` 相关鉴权模块!
 
 ### 2. 编译SDK
 
