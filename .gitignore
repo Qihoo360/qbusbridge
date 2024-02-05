@@ -28,3 +28,7 @@ cxx/thirdparts/local/
 
 version.cc
 *.tar.gz
+
+.idea
+.vscode
+.DS_Store

@@ -1,7 +1,7 @@
 [submodule "cxx/thirdparts/librdkafka"]
 	path = cxx/thirdparts/librdkafka
 	url = https://github.com/edenhill/librdkafka.git
-	branch = 1.4.x
+
 [submodule "cxx/thirdparts/log4cplus"]
 	path = cxx/thirdparts/log4cplus
 	url = https://github.com/log4cplus/log4cplus.git

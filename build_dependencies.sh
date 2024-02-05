@@ -32,7 +32,7 @@ build_log4cplus() {
 build_boost_1_70() {
     pushd "$SOURCE_DIR"
     if [[ ! -f boost_1_70_0.tar.gz ]]; then
-        wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz
+        wget https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
     fi
     tar zxf boost_1_70_0.tar.gz
     pushd boost_1_70_0
@@ -73,7 +73,7 @@ build_pulsar() {
         -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"
     # Here we use multiple threads to compile because it take long to compile with a single thread
-    make -j4  
+    make -j4
     make install
     pushd $PULSAR_CPP_DIR
     git checkout -- .
